@@ -1,7 +1,9 @@
-import React, { useState } from "react";
-import Logo from "../assets/logo.png";
-import LogoNombre from "../assets/logo-2.png";
+import { useState } from "react";
+import Logo from "../../assets/logo.png";
+import LogoNombre from "../../assets/logo-2.png";
 import { Link } from "react-router-dom";
+import { LinkButton } from "../ui/LinkButton";
+import { Item } from "./Item";
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -20,67 +22,18 @@ export default function Navbar() {
           {/* 🔸 Menú desktop (idéntico al tuyo) */}
           <div className="hidden md:flex md:items-center md:space-x-6">
             <ul className="flex space-x-6 text-lg">
-              <li>
-                <Link to="/" className="text-[#3D8E88] hover:text-[#2f6f6c]">
-                  Home
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/veterinarias"
-                  className="text-[#3D8E88] hover:text-[#2f6f6c]"
-                >
-                  Veterinarias 24hrs
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/documentacion"
-                  className="text-[#3D8E88] hover:text-[#2f6f6c]"
-                >
-                  Documentación
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/eventos"
-                  className="text-[#3D8E88] hover:text-[#2f6f6c]"
-                >
-                  Eventos
-                </Link>
-              </li>
+              <Item href="/">Home</Item>
+              <Item href="/veterinarias">Veterinarias 24hrs</Item>
+              <Item href="/documentacion">Documentación</Item>
+              <Item href="/eventos">Eventos</Item>
             </ul>
 
             {/* Botones desktop (idénticos) */}
             <div className="ml-6 flex space-x-2">
-              <Link to="/formulario-de-ingreso">
-              <button
-                className="btn-outline"
-                onMouseOver={(e) => {
-                  e.currentTarget.style.backgroundColor = "#32726b";
-                  e.currentTarget.style.color = "white";
-                }}
-                onMouseOut={(e) => {
-                  e.currentTarget.style.backgroundColor = "transparent";
-                  e.currentTarget.style.color = "#3D8E88";
-                }}
-              >
-                Ingresar
-              </button></Link>
-
-              <Link to="/formulario-titular">
-                <button
-                  className="btn"
-                  onMouseOver={(e) =>
-                    (e.currentTarget.style.backgroundColor = "#32726b")
-                  }
-                  onMouseOut={(e) =>
-                    (e.currentTarget.style.backgroundColor = "#3D8E88")
-                  }
-                >
-                  Registrarte
-                </button>
-              </Link>
+              <LinkButton href="/formulario-de-ingreso">Ingresar</LinkButton>
+              <LinkButton variant="outline" href="/formulario-titular">
+                Registrarte
+              </LinkButton>
             </div>
           </div>
 

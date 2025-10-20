@@ -9,17 +9,17 @@
 }
 
 .btn {
-  @apply px-4 py-2 rounded text-white bg-[#3D8E88] hover:bg-[#32726b] transition-colors duration-300;
+  @apply px-4 py-2 rounded text-white bg-[#3D8E88] hover:bg-[#32726b] transition-colors duration-300 cursor-pointer;
 }
 
 .btn-outline {
-  @apply px-4 py-2 border border-[#3D8E88] text-[#3D8E88] rounded hover:bg-[#32726b] hover:text-white transition-colors duration-300;
+  @apply px-4 py-2 border border-[#3D8E88] text-[#3D8E88] rounded hover:bg-[#32726b] hover:text-white transition-colors duration-300 cursor-pointer;
 }
 .btn-form-login {
-  @apply px-4 py-2  text-[#ff8800] rounded hover:bg-[#ffd28f] transition-colors duration-300 bg-white;
+  @apply px-4 py-2  text-[#ff8800] rounded hover:bg-[#ffd28f] transition-colors duration-300 bg-white cursor-pointer;
 }
 .custom-input {
-  @apply rounded-md !border-t-white focus:!border-t-gray-900 px-4 py-2 bg-amber-50 border-none;
+  @apply rounded-md !border-t-white focus:!border-t-gray-900 px-4 py-2 bg-amber-50 border-none cursor-pointer;
 }
 
 body {
