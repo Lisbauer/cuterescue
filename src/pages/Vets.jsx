@@ -1,104 +1,50 @@
-import React, { useState, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import MapaVet from "../components/maps/MapVets";
 import AppH1 from "../components/ui/AppH1";
-
-const veterinarias = [
-  {
-    id: 1,
-    nombre: "Centro Médico Veterinario Buenos Aires",
-    direccion: "Av. Boedo 840, C1228 Cdad. Autónoma de Buenos Aires",
-    lat: -34.62246017340913,
-    lng: -58.41604893069148,
-    telefono: "011 4931-4425",
-    imagen: "/src/assets/images/veterinarias/veterinaria-1.png",
-    link: "https://www.instagram.com/centrovetbuenosaires/",
-  },
-  {
-    id: 2,
-    nombre: "CAVI Clínica Veterinaria",
-    direccion: "Av. La Plata 402, C1235 Cdad. Autónoma de Buenos Aires",
-    lat: -34.61926456677184,
-    lng: -58.4281911182422,
-    telefono: "3533-8108",
-    imagen: "/src/assets/images/veterinarias/veterinaria-2.png",
-    link: "https://cavi.com.ar/",
-  },
-  {
-    id: 3,
-    nombre: "Veterinaria UCIcoop",
-    direccion:
-      "Av. José María Moreno 635, C1424AAG Cdad. Autónoma de Buenos Aires",
-    lat: -34.62593787430421,
-    lng: -58.434401116390696,
-    telefono: "011 4924-0026",
-    imagen: "/src/assets/images/veterinarias/veterinaria-3.png",
-    link: "https://www.instagram.com/ucicoop/",
-  },
-  {
-    id: 4,
-    nombre: "Veterinaria Panda",
-    direccion: "Ave. Ruiz Huidobro 4771, C1430 Cdad. Autónoma de Buenos Aires",
-    lat: -34.554730831491426,
-    lng: -58.49462365872152,
-    telefono: "011 5263-0176",
-    imagen: "/src/assets/images/veterinarias/veterinaria-4.png",
-    link: "https://medicinaintegral.veterinariapanda.com.ar/",
-  },
-  {
-    id: 5,
-    nombre: "Veterinaria del Libertador",
-    direccion: "Blanco Encalada 1420, C1428 Cdad. Autónoma de Buenos Aires",
-    lat: -34.55333374807784,
-    lng: -58.449358160572835,
-    telefono: "4788-0888",
-    imagen: "/src/assets/images/veterinarias/veterinaria-5.png",
-    link: "https://www.instagram.com/veterinarialibertador/",
-  },
-  {
-    id: 6,
-    nombre: "Clínica Veterinaria Cilap",
-    direccion: "Av. Angel Gallardo 75, C1405 Cdad. Autónoma de Buenos Aires",
-    lat: -34.602468569611766,
-    lng: -58.43363597221212,
-    telefono: "011 3137-0132",
-    imagen: "/src/assets/images/veterinarias/veterinaria-6.png",
-    link: "https://www.instagram.com/clinicaveterinariacilap/",
-  },
-  {
-    id: 7,
-    nombre: "Centro Asistencial Veterinario San Marcos",
-    direccion: "Av. Díaz Vélez 4730, C1405 Cdad. Autónoma de Buenos Aires",
-    lat: -34.608735235472466,
-    lng: -58.43343338940672,
-    telefono: "011 4981-1873",
-    imagen: "/src/assets/images/veterinarias/veterinaria-7.png",
-    link: "https://cavsanmarcos.com/",
-  },
-];
+import { getVeterinarias24 } from "../services/vet.service";
 
 export default function Veterinaria() {
-  const [selectedVet, setSelectedVet] = useState(veterinarias[0]);
+  const [veterinarias, setVeterinarias] = useState([]);
+  const [selectedVet, setSelectedVet] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   const mapRef = useRef(null);
 
+  useEffect(() => {
+    async function load() {
+      try {
+        const data = await getVeterinarias24();
+        setVeterinarias(data);
+        setSelectedVet(data[0] ?? null);
+      } catch (e) {
+        console.error("Error cargando veterinarias:", e);
+      } finally {
+        setLoading(false);
+      }
+    }
+    load();
+  }, []);
+
   const handleSelectVet = (vet) => {
     setSelectedVet(vet);
-
-    //Scroll hasta el maps
     setTimeout(() => {
       mapRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     }, 200);
   };
 
+  if (loading) return <div className="min-h-screen bg-[#F7F9F9] p-6">Cargando…</div>;
+
   return (
     <div className="min-h-screen bg-[#F7F9F9] py-10 px-6">
       <div className="flex justify-center" ref={mapRef}>
         <div className="max-w-7xl w-full z-10">
-          <MapaVet
-            lat={selectedVet.lat}
-            lng={selectedVet.lng}
-            nombre={selectedVet.nombre}
-          />
+          {selectedVet && (
+            <MapaVet
+              lat={selectedVet.lat}
+              lng={selectedVet.lng}
+              nombre={selectedVet.nombre}
+            />
+          )}
         </div>
       </div>
 
@@ -110,11 +56,11 @@ export default function Veterinaria() {
             key={vet.id}
             onClick={() => handleSelectVet(vet)}
             className={`bg-white shadow-lg rounded-2xl overflow-hidden hover:shadow-2xl transition-shadow duration-300 ${
-              selectedVet.id === vet.id ? "ring-2 ring-[#22687b]" : ""
+              selectedVet?.id === vet.id ? "ring-2 ring-[#22687b]" : ""
             }`}
           >
             <img
-              src={vet.imagen}
+              src={vet.imagen_url || "/src/assets/images/veterinarias/veterinaria-1.png"}
               alt={vet.nombre}
               className="w-full h-64 object-cover"
             />
@@ -126,16 +72,18 @@ export default function Veterinaria() {
                 <span className="font-medium">Dirección:</span> {vet.direccion}
               </p>
               <p className="text-gray-700 mb-3">
-                <span className="font-medium">Teléfono:</span> {vet.telefono}
+                <span className="font-medium">Teléfono:</span> {vet.telefono || "—"}
               </p>
-              <a
-                href={vet.link}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-block mt-2 px-4 py-2 text-[#22687b] border border-[#22687b] rounded hover:bg-[#22687b] hover:text-white transition-all duration-200"
-              >
-                Ver más
-              </a>
+              {vet.link && (
+                <a
+                  href={vet.link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-block mt-2 px-4 py-2 text-[#22687b] border border-[#22687b] rounded hover:bg-[#22687b] hover:text-white transition-all duration-200"
+                >
+                  Ver más
+                </a>
+              )}
             </div>
           </div>
         ))}

@@ -1,65 +1,45 @@
 import "./fonts.css";
-import Navbar from "./components/Navbar";
-import { Routes, Route, useLocation } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
+import PublicLayout from "./layouts/PublicLayout";
+import PrivateRoute from "./router/PrivateRoute";
+import AdminProtection from "./admin/components/AdminProtection";
+
+// paginas
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+import Dashboard from "./pages/Dashboard";
 import Vets from "./pages/Vets";
-import Footer from "./components/Footer";
 import Documentation from "./pages/Documentation";
 import UserProfile from "./pages/UserProfile";
-import Register from "./pages/Register";
-import Login from "./pages/Login";
-import Dashboard from "./pages/Dashboard";
 import Events from "./pages/Events";
-import DataPet from "./pages/DataPet";
 import Maps from "./pages/Maps";
+import DataPet from "./pages/DataPet";
 import Planes from "./pages/Plans";
-import ModalAlert from "./components/modals/ModalAlert";
-import { useSavedData } from "./context/SavedDataContext";
-import { useEffect } from "react";
-import logo from "./assets/logo.png";
-import PrivateRoute from "./router/PrivateRoute";
+
+// admin
+import AdminLayout from "./admin/components/AdminLayout";
+import AdminDashboard from "./admin/pages/AdminDashboard";
+import AdminVets from "./admin/pages/AdminVetsList";
+import AdminVetCreate from "./admin/pages/actions/AdminVetCreate";
+import AdminVetEdit from "./admin/pages/actions/AdminVetEdit";
+import AdminEventsList from "./admin/pages/AdminEventsList";
+import AdminEventCreate from "./admin/pages/actions/AdminEventCreate";
+import AdminEventEdit from "./admin/pages/actions/AdminEventEdit";
+import AdminMembershipsList from "./admin/pages/AdminMembershipsList";
+import AdminMembershipEdit from "./admin/pages/actions/AdminMembershipEdit";
+import AdminUsersList from "./admin/pages/AdminUsersList";
+import AdminUserDetails from "./admin/pages/AdminUserDetails";
 
 function App() {
-  const { showAlert, alert, closeAlert, alertOn } = useSavedData();
-  const location = useLocation();
-
-  // modal global excepto en /maps
-  const showModalOnRoute = location.pathname !== "/maps";
-
-  // logo o favicon
-  useEffect(() => {
-    const link = document.querySelector("link[rel~='icon']");
-    if (link) link.href = logo;
-  }, []);
-
   return (
-    <>
-      <Navbar />
-
-      {/* modal de emergencia */}
-      <ModalAlert show={showAlert} alert={alert} onClose={closeAlert} />
-
-      {/* modal global si hay alerta on/activado*/}
-      {alertOn && showModalOnRoute && (
-        <ModalAlert
-          show={true}
-          alert={{
-            color: "#F7612A",
-            title: "Tu mascota está actualmente en modo emergencia",
-            message: "Podrás ver sus movimientos en tiempo real.",
-            button: "Ir al mapa",
-            redirect: "/maps",
-          }}
-          onClose={() => {}}
-        />
-      )}
-
-      <Routes>
-        {/* -----------rutas publicas ------------- */}
+    <Routes>
+      <Route element={<PublicLayout />}>
+        {/* públicas */}
         <Route path="/login" element={<Login />} />
         <Route path="/registrar" element={<Register />} />
         <Route path="/eventos" element={<Events />} />
-        
-        {/* -------------rutas protegidas----------- */}
+
+        {/* protegidas */}
         <Route
           path="/"
           element={
@@ -123,7 +103,6 @@ function App() {
           }
         />
 
-
         <Route
           path="/planes"
           element={
@@ -132,10 +111,32 @@ function App() {
             </PrivateRoute>
           }
         />
-      </Routes>
+      </Route>
 
-      <Footer />
-    </>
+      <Route
+        path="/admin"
+        element={
+          <PrivateRoute>
+            <AdminProtection>
+              <AdminLayout />
+            </AdminProtection>
+          </PrivateRoute>
+        }
+      >
+        <Route index element={<AdminDashboard />} />
+          <Route path="veterinarias" element={<AdminVets />} />
+  <Route path="veterinarias/nueva" element={<AdminVetCreate />} />
+  <Route path="veterinarias/:id/editar" element={<AdminVetEdit />} />
+
+    <Route path="eventos" element={<AdminEventsList />} />
+  <Route path="eventos/nuevo" element={<AdminEventCreate />} />
+  <Route path="eventos/:id/editar" element={<AdminEventEdit />} />
+  <Route path="membresias" element={<AdminMembershipsList />} />
+<Route path="membresias/:id/editar" element={<AdminMembershipEdit />} />
+<Route path="usuarios" element={<AdminUsersList />} />
+<Route path="usuarios/:id" element={<AdminUserDetails />} />
+      </Route>
+    </Routes>
   );
 }
 
