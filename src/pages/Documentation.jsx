@@ -1,30 +1,38 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "../services/supabase";
 import ModalDocumentacion from "../components/ModalDocumentation";
 import AppH1 from "../components/ui/AppH1";
 import { useAuth } from "../context/AuthContext";
 
-/**
- * pag principal para gestionar la documentación veterinaria de cada mascota
-permite:
-seleccionar una mascota para ver su ficha de datos vets
-cargar, editar o eliminar docveterinaria: vacunas, pipetas y antiparasitrios
-mostrar alertas según fecha de vencimiento
-generar automáticamente notif en supabase para recordar vencimientos y no repetir las notificaciones cada vez que el usuario hace f5
-modal dinámico para agregar o editar documentación
- */
-
 export default function Documentation() {
-  const { user, loading } = useAuth(); 
+  const navigate = useNavigate();
+  const { user, loading } = useAuth();
+
   const [mascotas, setMascotas] = useState([]);
   const [selectedMascota, setSelectedMascota] = useState(null);
+
   const [vacunas, setVacunas] = useState([]);
   const [pipetas, setPipetas] = useState([]);
   const [desparasitaciones, setDesparasitaciones] = useState([]);
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [tipoModal, setTipoModal] = useState("");
   const [editData, setEditData] = useState(null);
 
+  // plan + limite docs (por mascota)
+  const [planCode, setPlanCode] = useState("freemium");
+  const [maxDocs, setMaxDocs] = useState(null); // null = infinito
+  const [docsCount, setDocsCount] = useState(0);
+  const [checkingDocLimit, setCheckingDocLimit] = useState(true);
+
+  const canAddDoc = useMemo(() => {
+    if (!selectedMascota) return false; // sin mascota, no agrego nada
+    if (maxDocs === null) return true;
+    return (docsCount ?? 0) < (maxDocs ?? 0);
+  }, [docsCount, maxDocs, selectedMascota]);
+
+  // Mascotas del usuario
   useEffect(() => {
     if (!user) return;
 
@@ -41,12 +49,15 @@ export default function Documentation() {
 
       setMascotas(data || []);
       setSelectedMascota(null);
+      setVacunas([]);
+      setPipetas([]);
+      setDesparasitaciones([]);
     }
 
     fetchMascotas();
   }, [user]);
 
-// genera notificaciones cuando algo esta por vencer
+  // Genera notifs si está por vencer (queda igual, solo lo ordené un poco)
   const generateNotifications = async (items, mascota, userId) => {
     if (!userId || !mascota) return;
 
@@ -60,7 +71,6 @@ export default function Documentation() {
       fechaVenc.setHours(0, 0, 0, 0);
 
       const diffDays = (fechaVenc - today) / (1000 * 60 * 60 * 24);
-
       const diasPrevios = [7, 1, 0];
       if (!diasPrevios.includes(diffDays)) continue;
 
@@ -80,10 +90,11 @@ export default function Documentation() {
 
       const { data: existing, error } = await supabase
         .from("notificaciones")
-        .select("*")
+        .select("id")
         .eq("documentacion_id", item.id)
         .eq("user_id", userId)
-        .eq("mensaje", mensaje);
+        .eq("mensaje", mensaje)
+        .limit(1);
 
       if (error) {
         console.error("Error buscando notificaciones:", error);
@@ -104,10 +115,7 @@ export default function Documentation() {
     }
   };
 
-  /**
-   * obtenemos toda la doc relacionada a una mascota:
-   * vacunas, pipetas y desparasitaciones y genera notificaciones en función de fechas de vencimiento
-   */
+  // Trae documentación de una mascota (para render)
   const fetchDocumentation = async (mascota) => {
     if (!user || !mascota?.id) return;
 
@@ -123,9 +131,9 @@ export default function Documentation() {
       return;
     }
 
-    const vacunasData = data.filter((d) => d.tipo === "vacuna");
-    const pipetasData = data.filter((d) => d.tipo === "pipeta");
-    const desparasitacionesData = data.filter(
+    const vacunasData = (data || []).filter((d) => d.tipo === "vacuna");
+    const pipetasData = (data || []).filter((d) => d.tipo === "pipeta");
+    const desparasitacionesData = (data || []).filter(
       (d) => d.tipo === "desparasitacion"
     );
 
@@ -140,9 +148,6 @@ export default function Documentation() {
     );
   };
 
-  /**
-   * Maneja el cambio de la mascota seleccionada en el desplegable
-   */
   const handleSelectPet = async (e) => {
     const mascotaId = e.target.value;
 
@@ -155,63 +160,195 @@ export default function Documentation() {
     }
 
     const mascota = mascotas.find((m) => m.id.toString() === mascotaId);
-
     setSelectedMascota(mascota);
     await fetchDocumentation(mascota);
   };
 
-  /**
-   * Abre el modal de documentación para agregar o editar un registro
-   */
+  // Cuenta docs POR MASCOTA + saca limite por plan
+  useEffect(() => {
+    async function checkDocLimit() {
+      try {
+        setCheckingDocLimit(true);
+
+        const { data: authData, error: authErr } = await supabase.auth.getUser();
+        if (authErr) throw authErr;
+
+        const authUid = authData?.user?.id;
+        if (!authUid) return;
+
+        // plan del usuario
+        const { data: userRow, error: userErr } = await supabase
+          .from("usuarios")
+          .select("membresia_codigo")
+          .eq("id", authUid)
+          .maybeSingle();
+
+        if (userErr) throw userErr;
+
+        const code = String(userRow?.membresia_codigo || "freemium")
+          .trim()
+          .toLowerCase();
+
+        setPlanCode(code);
+
+        // limite del plan
+        const { data: membershipRow, error: memErr } = await supabase
+          .from("membresias")
+          .select("slots_documentacion")
+          .eq("codigo", code)
+          .maybeSingle();
+
+        if (memErr) throw memErr;
+
+        if (!membershipRow) {
+          const fallback = code === "premium" ? 8 : code === "plus" ? null : 3;
+          setMaxDocs(fallback);
+        } else {
+          const rawMax = membershipRow.slots_documentacion;
+          const parsedMax =
+            rawMax === null || rawMax === undefined ? null : Number(rawMax);
+
+          setMaxDocs(Number.isFinite(parsedMax) ? parsedMax : null);
+        }
+
+        // docs por mascota (si no hay mascota seleccionada, no muestro nada)
+        if (!selectedMascota?.id) {
+          setDocsCount(0);
+          return;
+        }
+
+        const { data: docsRows, error: docsErr } = await supabase
+          .from("documentacion")
+          .select("id")
+          .eq("user_id", authUid)
+          .eq("mascota_id", selectedMascota.id);
+
+        if (docsErr) throw docsErr;
+        setDocsCount(docsRows?.length ?? 0);
+      } catch (err) {
+        console.error("checkDocLimit error:", err?.message || err);
+        setPlanCode("freemium");
+        setMaxDocs(3);
+        setDocsCount(0);
+      } finally {
+        setCheckingDocLimit(false);
+      }
+    }
+
+    checkDocLimit();
+  }, [user?.id, selectedMascota?.id]);
+
+  // Chequea duplicados (por mascota)
+  async function isDuplicate({ authUid, petId, tipo, registro }) {
+    let q = supabase
+      .from("documentacion")
+      .select("id")
+      .eq("user_id", authUid)
+      .eq("mascota_id", petId)
+      .eq("tipo", tipo);
+
+    if (tipo === "vacuna") q = q.eq("tipo_vacuna", registro.tipo_vacuna);
+    if (tipo === "pipeta") q = q.eq("producto", registro.producto);
+    if (tipo === "desparasitacion")
+      q = q.eq("antiparasitario", registro.antiparasitario);
+
+    const { data, error } = await q.limit(1);
+    if (error) throw error;
+
+    return (data?.length ?? 0) > 0;
+  }
+
+  // Abre modal o manda a planes
   const openModal = (tipo, data = null) => {
     if (!selectedMascota) {
       alert("Selecciona una mascota primero");
       return;
     }
+
+    // si está creando nuevo y ya llegó al límite
+    if (!data && !checkingDocLimit && !canAddDoc) {
+      navigate("/planes");
+      return;
+    }
+
     setTipoModal(tipo);
     setEditData(data);
     setIsModalOpen(true);
   };
 
-  // inserta o actualiza un registro de doc veterinaria
   const handleAddOrUpdate = async (data) => {
     if (!selectedMascota || !user) return;
 
-    const registro = {
-      user_id: user.id,
-      mascota_id: selectedMascota.id,
-      tipo: tipoModal,
-      fecha_aplicacion: data.fecha_aplicacion || null,
-      fecha_vencimiento: data.fecha_vencimiento || null,
-      alerta: data.alerta || "Activo",
-      tipo_vacuna: data.tipo_vacuna || null,
-      producto: data.producto || null,
-      antiparasitario: data.antiparasitario || null,
-      presentacion: data.presentacion || null,
-      foto_url: data.foto_url || null,
-    };
+    try {
+      const { data: authData, error: authErr } = await supabase.auth.getUser();
+      if (authErr) throw authErr;
+      const authUid = authData?.user?.id;
+      if (!authUid) return;
 
-    if (!editData) {
-      await supabase.from("documentacion").insert([registro]);
-    } else {
-      await supabase
-        .from("documentacion")
-        .update(registro)
-        .eq("id", editData.id);
+      const registro = {
+        user_id: authUid,
+        mascota_id: selectedMascota.id,
+        tipo: tipoModal,
+        fecha_aplicacion: data.fecha_aplicacion || null,
+        fecha_vencimiento: data.fecha_vencimiento || null,
+        alerta: data.alerta || "Activo",
+        tipo_vacuna: data.tipo_vacuna || null,
+        producto: data.producto || null,
+        antiparasitario: data.antiparasitario || null,
+        presentacion: data.presentacion || null,
+        foto_url: data.foto_url || null,
+      };
+
+      if (!editData) {
+        // limite por mascota
+        if (!checkingDocLimit && !canAddDoc) {
+          navigate("/planes");
+          return;
+        }
+
+        // no duplicar lo mismo
+        const dup = await isDuplicate({
+          authUid,
+          petId: selectedMascota.id,
+          tipo: tipoModal,
+          registro,
+        });
+
+        if (dup) {
+          alert(
+            "Esto ya lo tenés cargado para esta mascota. Si querés cambiar fechas, editá el registro."
+          );
+          return;
+        }
+
+        const { error } = await supabase.from("documentacion").insert([registro]);
+        if (error) throw error;
+
+        setDocsCount((prev) => (prev ?? 0) + 1);
+      } else {
+        const { error } = await supabase
+          .from("documentacion")
+          .update(registro)
+          .eq("id", editData.id);
+
+        if (error) throw error;
+      }
+
+      await fetchDocumentation(selectedMascota);
+      setIsModalOpen(false);
+      setEditData(null);
+    } catch (err) {
+      console.error("Error guardando documentación:", err);
+      alert("Ocurrió un error al guardar la documentación.");
     }
-
-    await fetchDocumentation(selectedMascota);
-    setIsModalOpen(false);
-    setEditData(null);
   };
 
-  // elimina un registro de doc vet segun su id
   const handleDelete = async (_tipo, id) => {
     await supabase.from("documentacion").delete().eq("id", id);
+    setDocsCount((prev) => Math.max(0, (prev ?? 0) - 1));
     await fetchDocumentation(selectedMascota);
   };
 
-  // renderiza indicador visual del estado de alerta
   const renderAlerta = (alerta) => (
     <span
       className={`px-2 py-1 rounded-full text-white text-xs font-semibold ${
@@ -224,20 +361,24 @@ export default function Documentation() {
 
   if (loading) return <p className="text-center mt-10">Cargando...</p>;
 
-  return (
-    <div className="documentacion-container px-4 md:px-16 lg:px-32 py-8">
-      <div className="mb-8 text-center">
-        <AppH1 className="estilosH1">Ficha médica de tus mascotas</AppH1>
-        <p className="text-gray-600 max-w-4xl mx-auto">
-          Mantén toda la información de salud de tus mascotas organizada y
-          accesible.
+return (
+  <div className="min-h-screen bg-gradient-to-b from-[#22687B]/5 to-white px-4 md:px-16 lg:px-32 py-10">
+    <div className="max-w-7xl mx-auto">
+
+      {/* header */}
+      <div className="rounded-2xl shadow-sm p-8 text-center">
+        <h1 className="text-3xl font-bold text-[#22687B]">
+          Ficha médica de tus mascotas
+        </h1>
+        <p className="text-gray-600 mt-2">
+          Mantén organizada toda la información de salud de tus mascotas.
         </p>
 
-        <div className="mt-4 inline-block relative">
+        <div className="mt-6 max-w-md mx-auto">
           <select
             value={selectedMascota ? selectedMascota.id.toString() : ""}
             onChange={handleSelectPet}
-            className="border border-gray-300 rounded-lg py-2 px-4 pr-8 text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400"
+            className="w-full border border-gray-200 rounded-xl py-3 px-4 shadow-sm focus:ring-2 focus:ring-[#22687B]/30"
           >
             <option value="">Selecciona a tu mascota</option>
             {mascotas.map((m) => (
@@ -249,74 +390,83 @@ export default function Documentation() {
         </div>
       </div>
 
+      {/* cards de documentacion */}
       {selectedMascota ? (
         ["vacuna", "pipeta", "desparasitacion"].map((categoria) => {
           let items = [];
           let titulo = "";
-          switch (categoria) {
-            case "vacuna":
-              items = vacunas;
-              titulo = "Vacunas";
-              break;
-            case "pipeta":
-              items = pipetas;
-              titulo = "Pipetas";
-              break;
-            case "desparasitacion":
-              items = desparasitaciones;
-              titulo = "Desparasitaciones";
-              break;
-            default:
-              break;
+
+          if (categoria === "vacuna") {
+            items = vacunas;
+            titulo = "Vacunas";
+          }
+          if (categoria === "pipeta") {
+            items = pipetas;
+            titulo = "Pipetas";
+          }
+          if (categoria === "desparasitacion") {
+            items = desparasitaciones;
+            titulo = "Desparasitaciones";
           }
 
           return (
-            <section key={categoria} className="section-container mb-10">
-              <h2 className="section-title text-xl font-semibold mb-4">
+            <section key={categoria} className="mt-12">
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">
                 {titulo}
               </h2>
 
-              <div className="cards-container grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 justify-items-center">
+              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+
                 {items.map((item) => (
                   <div
                     key={item.id}
-                    className="card min-h-[360px] w-full max-w-lg flex flex-col justify-between bg-gray-50 shadow-sm rounded-lg p-6"
+                    className="bg-white rounded-2xl shadow-sm border p-6 hover:shadow-md transition flex flex-col justify-between"
                   >
                     <div>
-                      <div className="card-header flex justify-between">
-                        <p className="label font-semibold">
+                      <div className="flex justify-between">
+                        <p className="text-sm text-gray-500">
                           {categoria === "vacuna"
                             ? "Vacuna"
                             : categoria === "pipeta"
                             ? "Producto"
                             : "Antiparasitario"}
-                          :
                         </p>
-                        <p className="label font-semibold">Alerta:</p>
-                      </div>
-                      <div className="card-status flex justify-between">
-                        <p className="text-sm">
-                          {categoria === "vacuna"
-                            ? item.tipo_vacuna
-                            : categoria === "pipeta"
-                            ? item.producto
-                            : item.antiparasitario}
-                        </p>
-                        {renderAlerta(item.alerta)}
+
+                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                          item.alerta === "Activo"
+                            ? "bg-green-100 text-green-700"
+                            : "bg-red-100 text-red-700"
+                        }`}>
+                          {item.alerta}
+                        </span>
                       </div>
 
-                      <p className="label mt-2">Fecha de aplicación:</p>
-                      <p className="text-xs mt-1">
-                        {item.fecha_aplicacion || "-"}
+                      <p className="font-bold text-lg mt-1">
+                        {categoria === "vacuna"
+                          ? item.tipo_vacuna
+                          : categoria === "pipeta"
+                          ? item.producto
+                          : item.antiparasitario}
                       </p>
-                      <p className="label mt-2">Fecha de vencimiento:</p>
-                      <p className="text-xs mt-1">
-                        {item.fecha_vencimiento || "-"}
-                      </p>
+
+                      <div className="mt-4 text-sm text-gray-600 space-y-1">
+                        <p>
+                          Aplicación:{" "}
+                          <span className="font-medium">
+                            {item.fecha_aplicacion || "-"}
+                          </span>
+                        </p>
+                        <p>
+                          Vencimiento:{" "}
+                          <span className="font-medium">
+                            {item.fecha_vencimiento || "-"}
+                          </span>
+                        </p>
+                      </div>
                     </div>
 
                     <button
-                      className="btn-card mt-4 w-full bg-blue-500 text-white py-3 rounded hover:bg-blue-600 transition"
+                      className="mt-6 bg-[#22687B] text-white py-2 rounded-xl hover:bg-[#1c5563] transition"
                       onClick={() => openModal(categoria, item)}
                     >
                       Ver información
@@ -324,25 +474,23 @@ export default function Documentation() {
                   </div>
                 ))}
 
+                {/* agregar boton */}
                 <div
-                  className="card-add min-h-[360px] w-full max-w-lg flex flex-col justify-center items-center bg-gray-50 shadow-sm rounded-lg cursor-pointer p-6"
                   onClick={() => openModal(categoria)}
+                  className="bg-white rounded-2xl border-dashed border-2 border-gray-300 p-6 flex flex-col items-center justify-center hover:shadow-md cursor-pointer transition"
                 >
-                  <div className="plus-sign text-4xl font-bold">+</div>
-                  <p className="add-text mt-2 font-semibold">
-                    {categoria === "vacuna"
-                      ? "Agregar vacuna"
-                      : categoria === "pipeta"
-                      ? "Agregar pipeta"
-                      : "Agregar desparasitación"}
+                  <div className="text-4xl text-[#22687B] font-bold">+</div>
+                  <p className="mt-2 font-semibold text-gray-700">
+                    Agregar {titulo.slice(0, -1)}
                   </p>
                 </div>
+
               </div>
             </section>
           );
         })
       ) : (
-        <p className="text-center text-gray-500 mt-6">
+        <p className="text-center text-gray-500 mt-12">
           Selecciona una mascota para ver su documentación.
         </p>
       )}
@@ -351,6 +499,12 @@ export default function Documentation() {
         isOpen={isModalOpen}
         tipo={tipoModal}
         data={editData}
+        petSpecies={selectedMascota?.especie}
+        existingItems={{
+          vacuna: vacunas,
+          pipeta: pipetas,
+          desparasitacion: desparasitaciones,
+        }}
         onClose={() => {
           setIsModalOpen(false);
           setEditData(null);
@@ -359,5 +513,6 @@ export default function Documentation() {
         onDelete={handleDelete}
       />
     </div>
-  );
+  </div>
+);
 }

@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from "react";
 import AppH1 from "../components/ui/AppH1";
 import { getEvents } from "../services/events";
+import LoadingScreen from "../components/ui/LoadingScreen";
 
 export default function Eventos() {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
 
   useEffect(() => {
     async function load() {
@@ -25,7 +27,7 @@ export default function Eventos() {
   if (loading)
     return (
       <div className="max-w-6xl mx-auto py-10">
-        <p className="text-center text-gray-500">Cargando eventos...</p>
+       <LoadingScreen fullScreen={false} className="py-10" />
       </div>
     );
 

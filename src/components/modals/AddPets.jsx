@@ -1,23 +1,17 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "../../services/supabase";
 import { capitalizeAll } from "../../utils/text";
 import { useAuth } from "../../context/AuthContext";
 
 /**
-componente encargado de registrar nuevas mascotas en el sistema
--  modal con un formulario para agregar una mascota
-- obtener automáticamente la ubicación inicial del usuario desde la tabla localizacion_usuario
-- subir la foto de la mascota al bucket de supabase storage mascotas
-- crea el registro de la mascota en la tabla mascotas
-- Crea tmbn la ubicacion inicial de esa mascota en la tabla localizacion
-- Notifica al componente padre que se agregó una nueva mascota mediante onPetAdded
- 
- * @requires capitalizeAll  funcion para mayusculas
- * @param {Object} props
- * @param {Function} props.onPetAdded / callback que se ejecuta cuando una mascota es agregada sin errores
+ * AddPets
+ * - Abre modal para registrar nueva mascota
+ * - Valida límite por plan (freemium/premium/plus)
+ * - Si alcanza el límite: bloquea UI y redirige a /planes
  */
-
 export default function AddPets({ onPetAdded }) {
+  const navigate = useNavigate();
   const { user } = useAuth();
 
   const [showModal, setShowModal] = useState(false);
@@ -32,12 +26,76 @@ export default function AddPets({ onPetAdded }) {
     estado_salud: "",
     foto_url: null,
   });
+
   const [ubicacion, setUbicacion] = useState(null);
   const [loading, setLoading] = useState(false);
   const [preview, setPreview] = useState(null);
   const [message, setMessage] = useState("");
 
-  //  obtiene la ubicación del usuario
+  // Plan / límite
+  const [planCode, setPlanCode] = useState("freemium");
+  const [maxPets, setMaxPets] = useState(1);
+  const [currentPetsCount, setCurrentPetsCount] = useState(0);
+  const [checkingLimit, setCheckingLimit] = useState(true);
+
+  const canAddPet = useMemo(() => {
+    return (currentPetsCount ?? 0) < (maxPets ?? 1);
+  }, [currentPetsCount, maxPets]);
+
+  // 1) Chequear límite (plan + count mascotas)
+  useEffect(() => {
+    async function checkPetLimit() {
+      try {
+        setCheckingLimit(true);
+        if (!user?.id) return;
+
+        // a) plan del usuario
+        const { data: userRow, error: userErr } = await supabase
+          .from("usuarios")
+          .select("membresia_codigo")
+          .eq("id", user.id)
+          .single();
+
+        if (userErr) throw userErr;
+
+        const code = (userRow?.membresia_codigo || "freemium").toLowerCase();
+        setPlanCode(code);
+
+        // b) límite del plan
+        const { data: membershipRow, error: memErr } = await supabase
+          .from("membresias")
+          .select("max_mascotas")
+          .eq("codigo", code)
+          .single();
+
+        if (memErr) throw memErr;
+
+        const max = Number(membershipRow?.max_mascotas);
+        setMaxPets(Number.isFinite(max) ? max : 1);
+
+        // c) cuántas mascotas tiene el usuario
+        const { count, error: countErr } = await supabase
+          .from("mascotas")
+          .select("*", { count: "exact", head: true })
+          .eq("owner_id", user.id);
+
+        if (countErr) throw countErr;
+
+        setCurrentPetsCount(count ?? 0);
+      } catch (err) {
+        console.error("Error checking pet limit:", err);
+        // fallback seguro
+        setPlanCode("freemium");
+        setMaxPets(1);
+      } finally {
+        setCheckingLimit(false);
+      }
+    }
+
+    checkPetLimit();
+  }, [user?.id]);
+
+  // 2) Obtener ubicación del usuario cuando se abre el modal
   useEffect(() => {
     const fetchUbicacion = async () => {
       if (!user) return;
@@ -59,32 +117,54 @@ export default function AddPets({ onPetAdded }) {
     if (showModal) fetchUbicacion();
   }, [showModal, user]);
 
-  //  Manejo de inputs
+  // 3) Manejo de inputs
   const handleChange = (e) => {
     const { name, value, files } = e.target;
 
     if (name === "foto_url" && files?.[0]) {
-      setForm({ ...form, foto_url: files[0] });
+      setForm((prev) => ({ ...prev, foto_url: files[0] }));
       setPreview(URL.createObjectURL(files[0]));
       return;
     }
 
-    // validacion de peso kg numeros positivos
     if (name === "peso") {
       if (value === "" || Number(value) >= 0) {
-        setForm({ ...form, [name]: value });
+        setForm((prev) => ({ ...prev, [name]: value }));
       }
       return;
     }
 
-    setForm({ ...form, [name]: value });
+    setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  // guarda mascota
+  // 4) Click en la card “Agregar mascota”
+  const handleOpen = () => {
+    setMessage("");
+
+    // mientras chequea, no abrimos (evita bugs)
+    if (checkingLimit) return;
+
+    if (!canAddPet) {
+      // UX: llevamos a planes
+      navigate("/planes");
+      return;
+    }
+
+    setShowModal(true);
+  };
+
+  // 5) Guardar mascota
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setMessage("");
+
+    // Chequeo UI extra (por si cambió el estado)
+    if (!canAddPet) {
+      setLoading(false);
+      navigate("/planes");
+      return;
+    }
 
     if (
       !form.nombre ||
@@ -107,7 +187,7 @@ export default function AddPets({ onPetAdded }) {
     }
 
     try {
-      // Subir foto si esta bien/corresponde
+      // Subir foto si corresponde
       let fotoUrl = null;
 
       if (form.foto_url instanceof File) {
@@ -126,7 +206,7 @@ export default function AddPets({ onPetAdded }) {
         fotoUrl = publicUrl.publicUrl;
       }
 
-      // Insertar mascota
+      // Insert mascota (acá también te protege el trigger PET_LIMIT_REACHED)
       const { data: pet, error: insertError } = await supabase
         .from("mascotas")
         .insert([
@@ -149,7 +229,7 @@ export default function AddPets({ onPetAdded }) {
 
       if (insertError) throw insertError;
 
-      // Insertar ubicación inicial real
+      // Insert ubicación inicial
       if (ubicacion) {
         const { direccion, codigoPostal, provincia, lat, lng, source } =
           ubicacion;
@@ -173,32 +253,83 @@ export default function AddPets({ onPetAdded }) {
         if (locError) throw locError;
       }
 
-      onPetAdded(pet);
+      // refrescar contador local (para que se deshabilite si llegó al límite)
+      setCurrentPetsCount((prev) => (prev ?? 0) + 1);
+
+      onPetAdded?.(pet);
       setMessage("✅ Mascota registrada correctamente.");
       setShowModal(false);
-      setForm({});
+
+      setForm({
+        nombre: "",
+        especie: "",
+        raza: "",
+        fecha_nacimiento: "",
+        peso: "",
+        sexo: "",
+        color: "",
+        estado_salud: "",
+        foto_url: null,
+      });
       setPreview(null);
     } catch (err) {
       console.error("Error al agregar pet:", err);
-      alert("❌ Falló al agregar pet: " + err.message);
+
+      const msg = String(err?.message || "");
+
+      // Si el trigger bloqueó (seguridad real)
+      if (msg.includes("PET_LIMIT_REACHED")) {
+        alert(
+          "Alcanzaste el límite de mascotas de tu plan. Mejorá tu plan para agregar más."
+        );
+        navigate("/planes");
+      } else {
+        alert("❌ Falló al agregar mascota: " + msg);
+      }
     } finally {
       setLoading(false);
       setTimeout(() => setMessage(""), 3000);
     }
   };
 
-  const maxDate = new Date().toISOString().split("T")[0]; // Para bloquear fechas futuras
+  const maxDate = new Date().toISOString().split("T")[0];
+
+  const disabledCard = !checkingLimit && !canAddPet;
 
   return (
     <>
-      {/* Card que abre el modal */}
+      {/* Card que abre el modal (o redirige a planes si no puede) */}
       <article
-        className="mx-auto bg-[#f5f5dc]/50 w-[256px] flex-shrink-0 rounded-3xl h-[250px] p-5 flex justify-center items-center flex-col cursor-pointer
-             shadow-md hover:shadow-xl hover:scale-105 transition-all duration-300 "
-        onClick={() => setShowModal(true)}
+        className={`mx-auto w-[256px] flex-shrink-0 rounded-3xl h-[250px] p-5 flex justify-center items-center flex-col shadow-md transition-all duration-300
+          ${
+            disabledCard
+              ? "bg-gray-200 cursor-not-allowed opacity-80"
+              : "bg-[#f5f5dc]/50 cursor-pointer hover:shadow-xl hover:scale-105"
+          }`}
+        onClick={handleOpen}
+        title={
+          disabledCard
+            ? `Límite alcanzado (${currentPetsCount}/${maxPets}). Mejorá tu plan.`
+            : "Agregar mascota"
+        }
       >
-        <span className="text-3xl font-bold text-[#22687b]">+</span>
-        <p className="text-[#22687b] mt-2">Agregar mascota</p>
+        <span
+          className={`text-3xl font-bold ${
+            disabledCard ? "text-gray-600" : "text-[#22687b]"
+          }`}
+        >
+          +
+        </span>
+
+        <p className={`${disabledCard ? "text-gray-600" : "text-[#22687b]"} mt-2`}>
+          {disabledCard ? "Mejorar plan" : "Agregar mascota"}
+        </p>
+
+        {!checkingLimit && (
+          <p className="text-xs mt-2 text-gray-500">
+            {currentPetsCount}/{maxPets} mascotas usadas • Plan {planCode}
+          </p>
+        )}
       </article>
 
       {/* Modal */}
@@ -220,7 +351,7 @@ export default function AddPets({ onPetAdded }) {
               onSubmit={handleSubmit}
               className="grid grid-cols-2 gap-4 max-h-[80vh] overflow-y-auto"
             >
-              {/* Campo Nombre */}
+              {/* Nombre */}
               <div>
                 <label className="block text-sm font-medium text-white mb-1">
                   Nombre
@@ -241,7 +372,7 @@ export default function AddPets({ onPetAdded }) {
                 </label>
                 <select
                   name="especie"
-                  value={form.especie}
+                  value={form.especie || ""}
                   onChange={handleChange}
                   className="w-full bg-white border border-gray-300 rounded-lg px-3 py-2"
                 >

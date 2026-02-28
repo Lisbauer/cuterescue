@@ -4,6 +4,14 @@ import ModalEdicionUsuario from "./modals/ModalEditUser";
 import { supabase } from "../services/supabase";
 import { capitalizeAll } from "../utils/text";
 
+function getPlanLabel(code) {
+  const c = (code || "freemium").toLowerCase();
+
+  if (c === "premium") return "Premium";
+  if (c === "plus") return "Plus";
+  return "Freemium";
+}
+
 export default function DetailsInform({ details, ubicacion }) {
   if (!details) return <div>Loading...</div>;
 
@@ -20,6 +28,7 @@ export default function DetailsInform({ details, ubicacion }) {
     codigoPostal: codigoPostalUser,
     provincia: provinciaUser,
     genero,
+    membresia_codigo, // 👈 plan actual desde DB
   } = details;
 
   const {
@@ -29,12 +38,10 @@ export default function DetailsInform({ details, ubicacion }) {
     direccion_segura,
   } = ubicacion || {};
 
-  // tabla localizacion_usuario  fallback usuarios
   const direccionMostrar = direccionLoc || direccionUser || "";
   const codigoPostalMostrar = codigoPostalLoc || codigoPostalUser || "";
   const provinciaMostrar = provinciaLoc || provinciaUser || "";
 
-  // estado de seguridad para implementacion futura con iot,aun sinfuncionalidad
   const esSegura = direccion_segura === true || direccion_segura === "true";
   const estadoSeguridad = esSegura ? "Sí" : "No";
   const colorSeguridad = esSegura ? "bg-green-500" : "bg-red-500";
@@ -52,9 +59,12 @@ export default function DetailsInform({ details, ubicacion }) {
     if (!error) setUserData(data);
   };
 
+  // ✅ Plan dinámico desde userData (así se actualiza tras checkout)
+  const planLabel = getPlanLabel(userData?.membresia_codigo ?? membresia_codigo);
+
   return (
     <div className="flex flex-col md:flex-row gap-10 justify-center items-center w-full">
-      {/*  Foto */}
+      {/* Foto */}
       <div className="bg-gray-200 w-72 h-80 rounded-2xl overflow-hidden shadow-md">
         <img
           src={userData.foto_url || "/default-avatar.png"}
@@ -80,9 +90,7 @@ export default function DetailsInform({ details, ubicacion }) {
           <p>
             <strong>Dirección:</strong>{" "}
             {direccionMostrar
-              ? `${capitalizeAll(
-                  direccionMostrar
-                )}, ${codigoPostalMostrar}, ${provinciaMostrar}`
+              ? `${capitalizeAll(direccionMostrar)}, ${codigoPostalMostrar}, ${provinciaMostrar}`
               : "No especificada"}
             <span
               className={`${colorSeguridad} py-1 px-5 ml-2 rounded-2xl text-white`}
@@ -103,7 +111,7 @@ export default function DetailsInform({ details, ubicacion }) {
           </p>
 
           <p>
-            <strong>Plan:</strong> Premium{" "}
+            <strong>Plan:</strong> {planLabel}{" "}
             <Link
               to="/planes"
               className="ml-3 px-4 py-1 bg-[#FF8C09] text-white font-medium rounded-md hover:bg-[#e07e07] transition"

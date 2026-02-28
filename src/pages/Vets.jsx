@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import MapaVet from "../components/maps/MapVets";
 import AppH1 from "../components/ui/AppH1";
 import { getVeterinarias24 } from "../services/vet.service";
+import LoadingScreen from "../components/ui/LoadingScreen";
 
 export default function Veterinaria() {
   const [veterinarias, setVeterinarias] = useState([]);
@@ -32,7 +33,9 @@ export default function Veterinaria() {
     }, 200);
   };
 
-  if (loading) return <div className="min-h-screen bg-[#F7F9F9] p-6">Cargando…</div>;
+  if (loading) return <div className="min-h-screen p-6">
+    <LoadingScreen fullScreen={false} className="py-10" />
+  </div>;
 
   return (
     <div className="min-h-screen bg-[#F7F9F9] py-10 px-6">

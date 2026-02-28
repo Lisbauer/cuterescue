@@ -1,14 +1,16 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import AppH1 from "../components/ui/AppH1";
 import { getMemberships } from "../services/memberships";
 
 function getPlanStyles(theme, highlighted) {
-
   if (theme === "dorado") {
     return {
       textColor: "text-[#3D8E88]",
       borderColor: "border-[#F7A82A]",
-      buttonClass: highlighted ? "bg-[#F7A82A] text-white" : "bg-[#22687b] text-white",
+      buttonClass: highlighted
+        ? "bg-[#F7A82A] text-white"
+        : "bg-[#22687b] text-white",
     };
   }
 
@@ -16,11 +18,15 @@ function getPlanStyles(theme, highlighted) {
   return {
     textColor: "text-[#3D8E88]",
     borderColor: "border-[#3D8E88]",
-    buttonClass: highlighted ? "bg-[#F7A82A] text-white" : "bg-[#22687b] text-white",
+    buttonClass: highlighted
+      ? "bg-[#F7A82A] text-white"
+      : "bg-[#22687b] text-white",
   };
 }
 
 export default function Planes() {
+  const navigate = useNavigate();
+
   const [plans, setPlans] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -44,18 +50,12 @@ export default function Planes() {
   const content = useMemo(() => {
     if (loading) {
       return (
-        <div className="text-center text-gray-500 mt-10">
-          Cargando planes...
-        </div>
+        <div className="text-center text-gray-500 mt-10">Cargando planes...</div>
       );
     }
 
     if (error) {
-      return (
-        <div className="text-center text-red-500 mt-10">
-          {error}
-        </div>
-      );
+      return <div className="text-center text-red-500 mt-10">{error}</div>;
     }
 
     if (!plans.length) {
@@ -71,6 +71,8 @@ export default function Planes() {
         {plans.map((plan) => {
           const highlighted = !!plan.destacado;
           const styles = getPlanStyles(plan.tema, highlighted);
+
+          const isFreemium = (plan.codigo || "").toLowerCase() === "freemium";
 
           return (
             <div
@@ -99,16 +101,24 @@ export default function Planes() {
 
               <button
                 type="button"
+                onClick={() => {
+                  if (isFreemium) {
+                    // Si es freemium, no tiene sentido ir a pagar
+                    navigate("/dashboard");
+                    return;
+                  }
+                  navigate(`/checkout/${plan.codigo}`);
+                }}
                 className={`w-full py-2 rounded-md font-semibold transition-colors hover:brightness-95 ${styles.buttonClass}`}
               >
-                {plan.texto_boton || "Elegir plan"}
+                {isFreemium ? "Usar plan gratuito" : plan.texto_boton || "Elegir plan"}
               </button>
             </div>
           );
         })}
       </div>
     );
-  }, [loading, error, plans]);
+  }, [loading, error, plans, navigate]);
 
   return (
     <section className="py-16 px-4 md:px-12 text-center">

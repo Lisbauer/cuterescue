@@ -15,6 +15,8 @@ import Events from "./pages/Events";
 import Maps from "./pages/Maps";
 import DataPet from "./pages/DataPet";
 import Planes from "./pages/Plans";
+import Checkout from "./pages/Checkout";
+import CheckoutSuccess from "./pages/CheckoutSuccess";
 
 // admin
 import AdminLayout from "./admin/components/AdminLayout";
@@ -112,6 +114,24 @@ function App() {
           }
         />
       </Route>
+
+      <Route
+  path="/checkout/:codigo"
+  element={
+    <PrivateRoute>
+      <Checkout />
+    </PrivateRoute>
+  }
+/>
+
+<Route
+  path="/checkout/exito"
+  element={
+    <PrivateRoute>
+      <CheckoutSuccess />
+    </PrivateRoute>
+  }
+/>
 
       <Route
         path="/admin"
