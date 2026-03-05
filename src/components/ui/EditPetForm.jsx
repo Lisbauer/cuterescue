@@ -14,16 +14,23 @@ export default function EditPetForm({
 }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [deleteMessage, setDeleteMessage] = useState("");
+  const [deleteStatus, setDeleteStatus] = useState("idle"); // idle | success | error
   const [confirmDelete, setConfirmDelete] = useState(false);
 
-  if (!selectedPet)
+  if (!selectedPet) {
     return (
-      <div className="flex justify-center items-center py-10">
-        <h2 className="text-3xl font-black text-[#22687b] text-center">
-          Todavía no has agregado una mascota
-        </h2>
-      </div>
+      <section className="w-full">
+        <div className="bg-white border border-black/5 shadow-sm rounded-3xl p-8 sm:p-10 text-center">
+          <h2 className="text-2xl sm:text-3xl font-extrabold text-[#22687b]">
+            Todavía no has agregado una mascota
+          </h2>
+          <p className="mt-2 text-sm text-gray-500">
+            Cuando agregues una, vas a poder ver y editar toda su info acá.
+          </p>
+        </div>
+      </section>
     );
+  }
 
   const {
     nombre,
@@ -46,6 +53,9 @@ export default function EditPetForm({
   } = ubicacion || {};
 
   const handleDelete = async () => {
+    setDeleteMessage("");
+    setDeleteStatus("idle");
+
     if (!confirmDelete) {
       setConfirmDelete(true);
       return;
@@ -55,116 +65,164 @@ export default function EditPetForm({
       const { error } = await supabase.from("mascotas").delete().eq("id", id);
       if (error) throw error;
 
-      setDeleteMessage("Mascota borrada correctamente");
+      setDeleteMessage("Mascota borrada correctamente.");
+      setDeleteStatus("success");
 
       await refreshPets?.();
-      onPetDeleted?.(); // notifica al padre
+      onPetDeleted?.();
     } catch (err) {
       console.error(err);
-      setDeleteMessage("error al borrar la mascota");
+      setDeleteMessage("Error al borrar la mascota.");
+      setDeleteStatus("error");
     } finally {
       setConfirmDelete(false);
     }
   };
 
+  const ownerLocationText =
+    userDireccion || userCodigoPostal || userProvincia
+      ? `${capitalizeAll(userDireccion)}, ${userCodigoPostal}, ${userProvincia}`
+      : "—";
+
+  const lastLocationText =
+    direccion || codigoPostal || provincia
+      ? `${capitalizeAll(direccion)}, ${codigoPostal}, ${provincia}`
+      : "—";
+
   return (
-    <div className="flex flex-col md:flex-row gap-10 justify-center items-center w-full mb-10 bg-[#f5f5f5]/60 rounded-3xl p-10 shadow-sm">
+    <section className="w-full">
+      <div className="bg-white border border-black/5 shadow-sm rounded-3xl p-6 sm:p-8">
+        <div className="flex flex-col md:flex-row gap-8 md:gap-10 items-center md:items-start">
+          {/* Foto */}
+          <div className="shrink-0 w-full md:w-auto">
+            <div className="w-full max-w-[320px] mx-auto md:mx-0 md:w-64 md:h-64 h-72 rounded-3xl overflow-hidden bg-gray-100 border border-black/10 shadow-sm">
+              <img
+                src={foto_url || "/default-pet.png"}
+                alt={nombre}
+                className="w-full h-full object-cover"
+                draggable="false"
+              />
+            </div>
 
-      <div className="bg-gray-200 w-72 h-80 rounded-2xl overflow-hidden shadow-md">
-        <img
-          src={foto_url || "/default-pet.png"}
-          alt={nombre}
-          className="object-cover w-full h-full"
-        />
-      </div>
-
- 
-      <div className="flex flex-col gap-4 max-w-2xl w-full">
-        <AppH1 className="estilosH1">{capitalizeAll(nombre)}</AppH1>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-3 text-gray-800">
-          <Info label="Especie" value={especie} />
-          <Info label="Raza" value={raza} />
-          <Info label="Fecha de nacimiento" value={fecha_nacimiento} />
-          <Info label="Sexo" value={sexo} />
-          <Info label="Color" value={color} />
-          <Info label="Estado de salud" value={estado_salud} />
-          <Info label="Peso" value={`${peso} kg`} />
-          <Info
-            label="Ubicación dueño"
-            value={`${capitalizeAll(
-              userDireccion
-            )}, ${userCodigoPostal}, ${userProvincia}`}
-          />
-          <Info
-            label="Última ubicación"
-            value={`${capitalizeAll(direccion)}, ${codigoPostal}, ${provincia}`}
-          />
-        </div>
-
-      
-        <div className="mt-6 flex flex-col gap-3">
-          <div className="flex flex-col sm:flex-row gap-4">
-         
-            <button
-              type="button"
-              onClick={() => setIsModalOpen(true)}
-              className="btnTransparente w-full"
-            >
-              Editar informes
-            </button>
-
-       
-            <button
-              type="button"
-              onClick={handleDelete}
-              className={`w-full font-bold py-2 rounded-xl transition ${
-                confirmDelete
-                  ? "bg-red-600 text-white"
-                  : "bg-[#22687b] text-white hover:bg-[#1a5361] cursor-pointer"
-              }`}
-            >
-              {confirmDelete ? "Confirmar Borrar" : "Borrar Mascota"}
-            </button>
-
-       
-            <button type="button" className="btnNaranja w-full">
-              Informe Chip
-            </button>
+            {/* Nombre en mobile debajo de la foto */}
+            <div className="mt-4 text-center md:hidden">
+              <h2 className="text-2xl font-extrabold text-[#22687b]">
+                {capitalizeAll(nombre)}
+              </h2>
+              <p className="text-sm text-gray-500 mt-1">
+                Editá la info y los informes de tu mascota
+              </p>
+            </div>
           </div>
 
-          {deleteMessage && (
-            <p
-              className={`mt-2 text-center text-sm font-medium ${
-                deleteMessage.includes("✅") ? "text-green-600" : "text-red-500"
-              }`}
-            >
-              {deleteMessage}
-            </p>
-          )}
-        </div>
-      </div>
+          {/* Info */}
+          <div className="w-full">
+            {/* Header desktop */}
+            <div className="hidden md:block">
+              <AppH1 className="estilosH1">{capitalizeAll(nombre)}</AppH1>
+              <p className="text-sm text-gray-500 mt-1">
+                Editá la información y gestioná los informes de tu mascota.
+              </p>
+            </div>
 
-    
-      {isModalOpen && (
-        <EditPetModal
-          pet={selectedPet}
-          onClose={() => setIsModalOpen(false)}
-          onSave={async (updatedPet) => {
-            await refreshPets();
-            onPetUpdated(updatedPet);
-          }}
-        />
-      )}
-    </div>
+            {/* “Cajitas” de datos */}
+            <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <InfoCard label="Especie" value={especie} />
+              <InfoCard label="Raza" value={raza} />
+              <InfoCard label="Fecha de nacimiento" value={fecha_nacimiento} />
+              <InfoCard label="Sexo" value={sexo} />
+              <InfoCard label="Color" value={color} />
+              <InfoCard label="Estado de salud" value={estado_salud} />
+              <InfoCard label="Peso" value={peso ? `${peso} kg` : "—"} />
+
+              <InfoCard
+                label="Ubicación dueño"
+                value={ownerLocationText}
+                className="sm:col-span-2"
+              />
+
+              <InfoCard
+                label="Última ubicación"
+                value={lastLocationText}
+                className="sm:col-span-2"
+              />
+            </div>
+
+            {/* Acciones */}
+            <div className="mt-8 flex flex-col gap-3">
+              <div className="flex flex-col sm:flex-row gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsModalOpen(true)}
+                  className="w-full inline-flex justify-center items-center rounded-[10px]
+                             bg-white text-[#22687B] px-6 py-3 font-semibold
+                             border border-[#22687B] transition
+                             hover:bg-[#22687B]/5 active:bg-[#22687B]/10"
+                >
+                  Editar informes
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleDelete}
+                  className={`w-full inline-flex justify-center items-center rounded-[10px]
+                              px-6 py-3 font-extrabold transition
+                    ${
+                      confirmDelete
+                        ? "bg-red-600 text-white hover:brightness-110 active:brightness-95"
+                        : "bg-[#22687b] text-white hover:brightness-110 active:brightness-95"
+                    }`}
+                >
+                  {confirmDelete ? "Confirmar borrar" : "Borrar mascota"}
+                </button>
+              </div>
+
+              {/* Mensaje */}
+              {confirmDelete && (
+                <p className="text-xs sm:text-sm text-center text-red-700 bg-red-50 border border-red-200 rounded-2xl px-4 py-3">
+                  Tocá otra vez para confirmar. Esta acción no se puede deshacer.
+                </p>
+              )}
+
+              {deleteMessage && (
+                <p
+                  className={`text-center text-sm font-semibold rounded-2xl px-4 py-3 border
+                    ${
+                      deleteStatus === "success"
+                        ? "text-green-700 bg-green-50 border-green-200"
+                        : "text-red-700 bg-red-50 border-red-200"
+                    }`}
+                >
+                  {deleteMessage}
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Modal */}
+        {isModalOpen && (
+          <EditPetModal
+            pet={selectedPet}
+            onClose={() => setIsModalOpen(false)}
+            onSave={async (updatedPet) => {
+              await refreshPets?.();
+              onPetUpdated?.(updatedPet);
+            }}
+          />
+        )}
+      </div>
+    </section>
   );
 }
 
-function Info({ label, value }) {
+function InfoCard({ label, value, className = "" }) {
   return (
-    <p>
-      <strong className="text-[#22687b] font-semibold">{label}:</strong>{" "}
-      <span className="text-gray-700">{value || "—"}</span>
-    </p>
+    <div className={`rounded-2xl border border-black/5 bg-gray-50/60 p-4 ${className}`}>
+      <p className="text-xs text-gray-500">{label}</p>
+      <p className="mt-1 font-semibold text-gray-800 break-words">
+        {value || "—"}
+      </p>
+    </div>
   );
 }

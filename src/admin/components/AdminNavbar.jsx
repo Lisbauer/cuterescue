@@ -1,15 +1,17 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { supabase } from "../../services/supabase";
 
 export default function AdminNavbar({ onToggleSidebar }) {
-  const { user, logout } = useAuth();
-  const [nombreCompleto, setNombreCompleto] = useState("");
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const [fullName, setFullName] = useState("");
 
   useEffect(() => {
-    if (!user) return;
+    if (!user?.id) return;
 
-    const fetchUserName = async () => {
+    async function fetchUserName() {
       const { data, error } = await supabase
         .from("usuarios")
         .select("nombre, apellido")
@@ -17,13 +19,22 @@ export default function AdminNavbar({ onToggleSidebar }) {
         .maybeSingle();
 
       if (!error && data) {
-        const fullName = `${data.nombre ?? ""} ${data.apellido ?? ""}`.trim();
-        setNombreCompleto(fullName);
+        const name = `${data.nombre ?? ""} ${data.apellido ?? ""}`.trim();
+        setFullName(name);
       }
-    };
+    }
 
     fetchUserName();
-  }, [user]);
+  }, [user?.id]);
+
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+      navigate("/login", { replace: true });
+    } catch (e) {
+      console.error("Logout error:", e);
+    }
+  };
 
   return (
     <header className="h-14 bg-white border-b flex items-center justify-between px-6">
@@ -41,11 +52,13 @@ export default function AdminNavbar({ onToggleSidebar }) {
       </div>
 
       <div className="flex items-center gap-3">
-        <span className="text-sm text-gray-600">
-          {nombreCompleto || user?.email}
-        </span>
+        <span className="text-sm text-gray-600">{fullName || user?.email}</span>
 
-        <button onClick={logout} className="text-sm text-red-500 hover:underline">
+        <button
+          type="button"
+          onClick={handleLogout}
+          className="text-sm text-red-500 hover:underline"
+        >
           Cerrar sesión
         </button>
       </div>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Logo from "../assets/logo.png";
 import LogoNombre from "../assets/logo-2.png";
 import { NavLink, Link, useNavigate } from "react-router-dom";
@@ -12,17 +12,16 @@ import LoadingScreen from "./ui/LoadingScreen";
 export default function Navbar() {
   const navigate = useNavigate();
   const { user, loading, signOut } = useAuth();
+  const { selectedPet, alertOn } = useSavedData();
 
-  const [isOpen, setIsOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
+
   const [alerts, setAlerts] = useState([]);
   const [isAdmin, setIsAdmin] = useState(false);
   const [checkingAdmin, setCheckingAdmin] = useState(false);
 
-  const { selectedPet, alertOn } = useSavedData();
-
-  
   const notifRef = useRef(null);
   const profileRef = useRef(null);
 
@@ -34,10 +33,18 @@ export default function Navbar() {
     { name: "Eventos", path: "/eventos" },
   ];
 
+  const formatDate = (value) => {
+    if (!value) return "";
+    try {
+      return new Date(value).toLocaleDateString();
+    } catch {
+      return "";
+    }
+  };
+
   const fetchIsAdmin = async (userId) => {
     try {
       setCheckingAdmin(true);
-
       const { data, error } = await supabase
         .from("admin_roles")
         .select("is_active")
@@ -45,7 +52,6 @@ export default function Navbar() {
         .maybeSingle();
 
       if (error) throw error;
-
       setIsAdmin(!!data?.is_active);
     } catch (e) {
       console.error("error chequeando admin:", e?.message || e);
@@ -58,9 +64,7 @@ export default function Navbar() {
   const fetchAlerts = async (userId) => {
     const { data, error } = await supabase
       .from("notificaciones")
-      .select(
-        `id, mensaje, fecha_alerta, vista, documentacion:documentacion_id (alerta)`
-      )
+      .select(`id, mensaje, fecha_alerta, vista, documentacion:documentacion_id (alerta)`)
       .eq("user_id", userId)
       .order("fecha_alerta", { ascending: true });
 
@@ -77,7 +81,6 @@ export default function Navbar() {
     setAlerts(filtered);
   };
 
-  // cargar datos cuando hay user
   useEffect(() => {
     if (!user) {
       setAlerts([]);
@@ -94,26 +97,23 @@ export default function Navbar() {
     navigate("/login");
   };
 
-  // helper: marcar todas como vistas
   const markAllAsSeen = async () => {
     if (alerts.length === 0) return;
-
     const ids = alerts.map((a) => a.id);
     await supabase.from("notificaciones").update({ vista: true }).in("id", ids);
     setAlerts([]);
   };
 
-  // click notifs
-  const handleNotificationsClick = async () => {
+  const toggleNotifications = async () => {
     setNotificationsOpen((prev) => !prev);
 
-    // marca como visto
+    // si estaba abierto y hay alerts, marcamos visto al cerrar
     if (notificationsOpen && alerts.length > 0) {
       await markAllAsSeen();
     }
   };
 
-  // cerrar dropdowns con click afuera (notifs + perfil)
+  // click afuera (notifs + perfil)
   useEffect(() => {
     const onMouseDown = (e) => {
       if (notifRef.current && !notifRef.current.contains(e.target)) {
@@ -128,11 +128,11 @@ export default function Navbar() {
     return () => document.removeEventListener("mousedown", onMouseDown);
   }, []);
 
-  // esc cierra todo
+  // Esc cierra todo
   useEffect(() => {
     const onKeyDown = (e) => {
       if (e.key === "Escape") {
-        setIsOpen(false);
+        setMobileMenuOpen(false);
         setProfileOpen(false);
         setNotificationsOpen(false);
       }
@@ -141,55 +141,49 @@ export default function Navbar() {
     return () => document.removeEventListener("keydown", onKeyDown);
   }, []);
 
-  // si vuelve a desktop, cierra menu mobile para no tener estados rotos
+  // cuando pasa a desktop, cerramos el menú mobile
   useEffect(() => {
-    const mq = window.matchMedia("(min-width: 976px)");
+    const mq = window.matchMedia("(min-width: 1024px)");
     const handleChange = () => {
-      if (mq.matches) setIsOpen(false);
+      if (mq.matches) setMobileMenuOpen(false);
     };
-
     handleChange();
     mq.addEventListener("change", handleChange);
     return () => mq.removeEventListener("change", handleChange);
   }, []);
 
-  //  helper para fecha
-  const formatDate = (value) => {
-    if (!value) return "";
-    try {
-      return new Date(value).toLocaleDateString();
-    } catch {
-      return "";
-    }
-  };
+  // bloquear scroll cuando drawer open (mobile)
+  useEffect(() => {
+    document.body.style.overflow = mobileMenuOpen ? "hidden" : "auto";
+    return () => {
+      document.body.style.overflow = "auto";
+    };
+  }, [mobileMenuOpen]);
 
   if (loading) return <LoadingScreen />;
 
   return (
-    <nav
-      className={`${
-        alertOn ? "bg-[#FBC68F]" : "bg-white"
-      } relative z-[5000] shadow`}
-    >
-      <div className="max-w-7xl mx-auto flex items-center justify-between p-4 relative">
-        {/* logo */}
-        <Link to="/" className="flex items-center gap-2">
-          <img className="h-30 w-auto" src={Logo} alt="Logo" />
-          <img className="h-30 w-auto" src={LogoNombre} alt="Logo" />
+    <nav className={`${alertOn ? "bg-[#FBC68F]" : "bg-white"} z-[5000] py-5 shadow`}>
+      {/* TOP BAR */}
+      <div className="max-w-7xl mx-auto h-20 px-4 flex items-center justify-between gap-3">
+        {/* Logo (siempre) */}
+        <Link to="/" className="flex items-center gap-2 shrink-0">
+          <img className="h-25 w-auto" src={Logo} alt="Logo" draggable="false" />
+          <img className="h-25 w-auto hidden sm:block" src={LogoNombre} alt="Logo nombre" draggable="false" />
         </Link>
 
-       
+        {/* Desktop menu */}
         <div className="hidden lg:flex flex-1 justify-center">
-          <ul className="flex flex-nowrap bg-[#22687B]/20 rounded-lg overflow-hidden text-lg p-2 gap-2">
+          <ul className="flex flex-nowrap bg-[#22687B]/20 rounded-lg overflow-hidden text-base p-2 gap-2">
             {menuItems.map((item) => (
               <li key={item.name} className="flex-shrink-0">
                 <NavLink
                   to={item.path}
                   className={({ isActive }) =>
-                    `px-5 py-2 transition-colors duration-300 ${
+                    `px-4 py-2 transition-colors duration-300 ${
                       isActive
-                        ? "bg-white text-[#22687B] rounded-lg border border-gray-400"
-                        : "text-[#22687B] hover:bg-white rounded-lg hover:text-[#22687B]"
+                        ? "bg-white text-[#22687B] rounded-lg border border-gray-300"
+                        : "text-[#22687B] hover:bg-white rounded-lg"
                     }`
                   }
                 >
@@ -200,53 +194,41 @@ export default function Navbar() {
           </ul>
         </div>
 
-     
-        <div
-          className={`flex items-center gap-2 z-[5100] transition-all duration-300 
-            opacity-100 pointer-events-auto
-            ${isOpen ? "max-[975px]:opacity-0 max-[975px]:pointer-events-none" : ""}
-            lg:opacity-100 lg:pointer-events-auto
-          `}
-        >
-        
+        {/* Right actions (DESKTOP) */}
+        <div className="hidden lg:flex items-center gap-2 shrink-0">
           {!user && (
-            <div className="hidden lg:flex gap-2">
+            <>
               <Link
                 to="/login"
                 className="px-4 py-2 bg-[#22687B] text-white font-semibold rounded-md shadow hover:bg-[#1c5563] transition"
               >
                 Ingresar
               </Link>
-
               <Link
                 to="/registrar"
                 className="px-4 py-2 bg-white text-[#22687B] font-semibold rounded-md shadow border border-[#22687B] hover:bg-[#f0fafa] transition"
               >
                 Registrarme
               </Link>
-            </div>
+            </>
           )}
 
-          {/* PetLink */}
           {user && <PetLink pet={selectedPet} />}
 
-          {/* NOTIFICACIONES */}
           {user && (
             <div className="relative" ref={notifRef}>
               <button
                 onClick={() => {
                   setProfileOpen(false);
-                  handleNotificationsClick();
+                  toggleNotifications();
                 }}
-                className="relative text-[#22687B] cursor-pointer rounded-full p-2
-                           transition hover:bg-[#22687B]/10 active:scale-95
+                className="relative text-[#22687B] rounded-full p-2 transition hover:bg-[#22687B]/10 active:scale-95
                            focus:outline-none focus:ring-2 focus:ring-[#22687B]/25"
                 aria-label="Notificaciones"
                 aria-haspopup="menu"
                 aria-expanded={notificationsOpen}
               >
                 <FiBell size={22} />
-
                 {alerts.length > 0 && (
                   <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[11px] font-bold rounded-full px-1.5 shadow">
                     {alerts.length > 9 ? "9+" : alerts.length}
@@ -254,7 +236,6 @@ export default function Navbar() {
                 )}
               </button>
 
-              {/* DROPDOWN */}
               <div
                 className={[
                   "absolute right-0 mt-2 w-80 max-w-[90vw] z-[6000]",
@@ -265,18 +246,13 @@ export default function Navbar() {
                 ].join(" ")}
               >
                 <div className="bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
-                  {/* header */}
                   <div className="px-4 py-3 bg-gradient-to-b from-[#22687B]/10 to-white border-b border-gray-100">
                     <div className="flex items-start justify-between gap-3">
                       <div>
-                        <p className="text-sm font-semibold text-[#22687B]">
-                          Notificaciones
-                        </p>
+                        <p className="text-sm font-semibold text-[#22687B]">Notificaciones</p>
                         <p className="text-xs text-gray-500">
                           {alerts.length > 0
-                            ? `Tenés ${alerts.length} alerta${
-                                alerts.length === 1 ? "" : "s"
-                              } pendiente${alerts.length === 1 ? "" : "s"}`
+                            ? `Tenés ${alerts.length} alerta${alerts.length === 1 ? "" : "s"} pendiente${alerts.length === 1 ? "" : "s"}`
                             : "Todo al día por ahora 🐾"}
                         </p>
                       </div>
@@ -297,17 +273,13 @@ export default function Navbar() {
                     </div>
                   </div>
 
-              
                   <div className="max-h-72 overflow-y-auto p-2">
                     {alerts.length === 0 ? (
                       <div className="px-3 py-4">
                         <div className="rounded-xl border border-dashed border-gray-200 bg-gray-50 px-4 py-3">
-                          <p className="text-sm font-semibold text-gray-800">
-                            Sin alertas
-                          </p>
+                          <p className="text-sm font-semibold text-gray-800">Sin alertas</p>
                           <p className="text-xs text-gray-500 mt-1">
-                            Cuando algo venza o requiera atención, va a aparecer
-                            acá.
+                            Cuando algo venza o requiera atención, va a aparecer acá.
                           </p>
                         </div>
                       </div>
@@ -334,7 +306,6 @@ export default function Navbar() {
                     )}
                   </div>
 
-                  {/* footer */}
                   <div className="px-4 py-3 border-t border-gray-100 flex items-center justify-between">
                     <span className="text-xs text-gray-500">Esc para cerrar</span>
                     <button
@@ -349,7 +320,6 @@ export default function Navbar() {
             </div>
           )}
 
-          {/* PERFIL */}
           {user && (
             <div className="relative" ref={profileRef}>
               <button
@@ -357,7 +327,7 @@ export default function Navbar() {
                   setProfileOpen((prev) => !prev);
                   setNotificationsOpen(false);
                 }}
-                className="w-25 px-4 py-2 bg-white text-[#22687B] font-semibold rounded-md shadow hover:bg-[#f0fafa] transition cursor-pointer"
+                className="px-4 py-2 bg-white text-[#22687B] font-semibold rounded-md shadow hover:bg-[#f0fafa] transition"
               >
                 Mi Perfil
               </button>
@@ -376,7 +346,6 @@ export default function Navbar() {
                         Mi Cuenta
                       </button>
                     </li>
-
                     <li>
                       <button
                         onClick={() => {
@@ -416,114 +385,254 @@ export default function Navbar() {
               )}
             </div>
           )}
+        </div>
 
-          {/* Hamburguesa mobile */}
-          <div className="relative z-[6500] max-[976px]:block hidden">
+        {/* MOBILE ACTIONS (nunca se superponen) */}
+        <div className="lg:hidden flex items-center gap-2">
+          {user && (
             <button
-              onClick={() => setIsOpen((prev) => !prev)}
-              className="text-[#22687B] focus:outline-none relative z-[6500]"
-              aria-label={isOpen ? "Cerrar menú" : "Abrir menú"}
-              aria-expanded={isOpen}
+              onClick={() => {
+                setProfileOpen(false);
+                toggleNotifications();
+              }}
+              className="relative text-[#22687B] rounded-full p-2 transition hover:bg-[#22687B]/10 active:scale-95"
+              aria-label="Notificaciones"
             >
-              <svg
-                className="h-6 w-6"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                {isOpen ? (
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                ) : (
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M4 6h16M4 12h16M4 18h16"
-                  />
-                )}
-              </svg>
+              <FiBell size={22} />
+              {alerts.length > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[11px] font-bold rounded-full px-1.5 shadow">
+                  {alerts.length > 9 ? "9+" : alerts.length}
+                </span>
+              )}
             </button>
-          </div>
+          )}
+
+          <button
+            onClick={() => setMobileMenuOpen((v) => !v)}
+            className="inline-flex items-center justify-center rounded-md border border-black/10 px-3 py-2 text-[#22687B]"
+            aria-label={mobileMenuOpen ? "Cerrar menú" : "Abrir menú"}
+            aria-expanded={mobileMenuOpen}
+          >
+            <span className="relative block h-5 w-6">
+              <span
+                className={`absolute left-0 top-1 block h-[2px] w-6 bg-[#22687B] transition ${
+                  mobileMenuOpen ? "translate-y-[6px] rotate-45" : ""
+                }`}
+              />
+              <span
+                className={`absolute left-0 top-1/2 -translate-y-1/2 block h-[2px] w-6 bg-[#22687B] transition ${
+                  mobileMenuOpen ? "opacity-0" : ""
+                }`}
+              />
+              <span
+                className={`absolute left-0 bottom-1 block h-[2px] w-6 bg-[#22687B] transition ${
+                  mobileMenuOpen ? "-translate-y-[6px] -rotate-45" : ""
+                }`}
+              />
+            </span>
+          </button>
         </div>
       </div>
 
-      {/* BACKDROP */}
-      {isOpen && (
-        <button
-          type="button"
-          aria-label="Cerrar menú"
-          onClick={() => setIsOpen(false)}
-          className="fixed inset-0 bg-black/20 z-[5200] backdrop-blur-sm cursor-default max-[976px]:block hidden"
-        />
-      )}
+      {/* MOBILE NOTIFICATIONS DROPDOWN (simple) */}
+      {user && (
+        <div className="lg:hidden">
+          <div
+            className={[
+              "px-4",
+              "transition-all duration-200",
+              notificationsOpen ? "block" : "hidden",
+            ].join(" ")}
+          >
+            <div className="mt-2 bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
+              <div className="px-4 py-3 bg-gradient-to-b from-[#22687B]/10 to-white border-b border-gray-100">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-semibold text-[#22687B]">Notificaciones</p>
+                    <p className="text-xs text-gray-500">
+                      {alerts.length > 0
+                        ? `Tenés ${alerts.length} alerta${alerts.length === 1 ? "" : "s"} pendiente${alerts.length === 1 ? "" : "s"}`
+                        : "Todo al día por ahora 🐾"}
+                    </p>
+                  </div>
 
-      {/* menu responsive mobile */}
-      {isOpen && (
-        <div
-          className="fixed top-0 left-0 w-full h-1/2 bg-[#f5f5dc] z-[5300] max-[976px]:block hidden shadow-lg"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <div className="relative h-full w-full">
-            <button
-              type="button"
-              onClick={() => setIsOpen(false)}
-              className="absolute top-4 right-4 px-4 py-2 rounded-full bg-white text-[#22687B] font-semibold shadow hover:bg-[#f0fafa] transition"
-            >
-              X
-            </button>
-
-            <ul className="flex flex-col items-center justify-center h-full space-y-4 text-lg">
-              {menuItems.map((item) => (
-                <li key={item.name}>
-                  <NavLink
-                    to={item.path}
-                    onClick={() => setIsOpen(false)}
-                    className={({ isActive }) =>
-                      `block px-5 py-2 rounded-full transition-colors duration-300 ${
-                        isActive
-                          ? "bg-white text-[#22687B]"
-                          : "text-[#3D8E88] hover:bg-white hover:text-[#3D8E88]"
-                      }`
-                    }
+                  <button
+                    type="button"
+                    disabled={alerts.length === 0}
+                    onClick={async () => {
+                      await markAllAsSeen();
+                      setNotificationsOpen(false);
+                    }}
+                    className="text-xs font-semibold text-[#22687B] px-3 py-1.5 rounded-lg
+                               hover:bg-[#22687B]/10 transition
+                               disabled:opacity-40 disabled:cursor-not-allowed"
                   >
-                    {item.name}
-                  </NavLink>
-                </li>
-              ))}
+                    Marcar visto
+                  </button>
+                </div>
+              </div>
 
-              {/* LOGIN / REGISTRO EN MOBILE */}
-              {!user && (
-                <>
-                  <li>
-                    <Link
-                      to="/login"
-                      onClick={() => setIsOpen(false)}
-                      className="block px-5 py-2 bg-[#22687B] text-white rounded-full shadow"
-                    >
-                      Ingresar
-                    </Link>
-                  </li>
+              <div className="max-h-60 overflow-y-auto p-2">
+                {alerts.length === 0 ? (
+                  <div className="px-3 py-4">
+                    <div className="rounded-xl border border-dashed border-gray-200 bg-gray-50 px-4 py-3">
+                      <p className="text-sm font-semibold text-gray-800">Sin alertas</p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Cuando algo venza o requiera atención, va a aparecer acá.
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <ul className="space-y-1">
+                    {alerts.map((alert) => (
+                      <li key={alert.id}>
+                        <div className="rounded-xl px-3 py-2 hover:bg-gray-50 transition">
+                          <p className="text-sm font-medium text-gray-800 leading-snug">
+                            {alert.mensaje}
+                          </p>
+                          <p className="text-xs text-gray-500 mt-1">
+                            {formatDate(alert.fecha_alerta)}
+                          </p>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
 
-                  <li>
-                    <Link
-                      to="/registrar"
-                      onClick={() => setIsOpen(false)}
-                      className="block px-5 py-2 bg-white text-[#22687B] border border-[#22687B] rounded-full shadow"
-                    >
-                      Registrarme
-                    </Link>
-                  </li>
-                </>
-              )}
-            </ul>
+              <div className="px-4 py-3 border-t border-gray-100 flex items-center justify-between">
+                <span className="text-xs text-gray-500">Esc para cerrar</span>
+                <button
+                  onClick={() => setNotificationsOpen(false)}
+                  className="text-xs font-semibold text-[#22687B] hover:underline"
+                >
+                  Cerrar
+                </button>
+              </div>
+            </div>
           </div>
         </div>
+      )}
+
+      {/* MOBILE DRAWER */}
+      {mobileMenuOpen && (
+        <>
+          <button
+            type="button"
+            aria-label="Cerrar menú"
+            onClick={() => setMobileMenuOpen(false)}
+            className="fixed inset-0 bg-black/30 z-[5200] backdrop-blur-sm"
+          />
+
+          <div className="fixed right-0 top-0 h-full w-[86%] max-w-sm bg-white z-[5300] shadow-2xl">
+            <div className="h-20 px-4 flex items-center justify-between border-b border-black/5">
+              <div className="flex items-center gap-2">
+                <img className="h-10 w-auto" src={Logo} alt="Logo" />
+                <img className="h-10 w-auto" src={LogoNombre} alt="Logo nombre" />
+              </div>
+
+              <button
+                onClick={() => setMobileMenuOpen(false)}
+                className="rounded-md border border-black/10 px-3 py-2 text-[#22687B]"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="p-4 space-y-4">
+              {/* Links */}
+              <div className="bg-[#22687B]/10 rounded-2xl p-3">
+                <ul className="flex flex-col">
+                  {menuItems.map((item) => (
+                    <li key={item.name}>
+                      <NavLink
+                        to={item.path}
+                        onClick={() => setMobileMenuOpen(false)}
+                        className={({ isActive }) =>
+                          `block px-4 py-3 rounded-xl transition ${
+                            isActive ? "bg-white text-[#22687B] font-semibold" : "text-[#22687B] hover:bg-white/70"
+                          }`
+                        }
+                      >
+                        {item.name}
+                      </NavLink>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* PetLink (mobile) */}
+              {user && (
+                <div className="rounded-2xl border border-black/10 p-3">
+                  <p className="text-xs text-black/60 mb-2">Mascota seleccionada</p>
+                  <PetLink pet={selectedPet} />
+                </div>
+              )}
+
+              {/* Profile actions (mobile) */}
+              {user ? (
+                <div className="grid grid-cols-1 gap-2">
+                  <button
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      navigate("/detalles");
+                    }}
+                    className="w-full rounded-xl border border-black/10 px-4 py-3 text-[#22687B] font-semibold hover:bg-black/5"
+                  >
+                    Mi Cuenta
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      navigate("/planes");
+                    }}
+                    className="w-full rounded-xl border border-black/10 px-4 py-3 text-[#22687B] font-semibold hover:bg-black/5"
+                  >
+                    Mi Plan
+                  </button>
+
+                  {!checkingAdmin && isAdmin && (
+                    <button
+                      onClick={() => {
+                        setMobileMenuOpen(false);
+                        navigate("/admin");
+                      }}
+                      className="w-full rounded-xl border border-black/10 px-4 py-3 text-[#22687B] font-semibold hover:bg-black/5"
+                    >
+                      Panel de control
+                    </button>
+                  )}
+
+                  <button
+                    onClick={handleSignOut}
+                    className="w-full rounded-xl bg-red-500 text-white px-4 py-3 font-semibold hover:brightness-110"
+                  >
+                    Cerrar Sesión
+                  </button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 gap-2">
+                  <Link
+                    to="/login"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="text-center w-full rounded-xl bg-[#22687B] text-white px-4 py-3 font-semibold hover:brightness-110"
+                  >
+                    Ingresar
+                  </Link>
+
+                  <Link
+                    to="/registrar"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="text-center w-full rounded-xl bg-white text-[#22687B] px-4 py-3 font-semibold border border-[#22687B] hover:bg-[#f0fafa]"
+                  >
+                    Registrarme
+                  </Link>
+                </div>
+              )}
+            </div>
+          </div>
+        </>
       )}
     </nav>
   );

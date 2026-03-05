@@ -27,9 +27,7 @@ export default function AdminQuickActions() {
         ))}
       </div>
 
-      <p className="text-xs text-gray-400 mt-3">
-        Atajos para administrar contenido sin buscar en el menú.
-      </p>
+
     </div>
   );
 }

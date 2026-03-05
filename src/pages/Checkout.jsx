@@ -16,7 +16,7 @@ export default function Checkout() {
   const [paying, setPaying] = useState(false);
   const [error, setError] = useState("");
 
-  // Inputs fake (solo UI)
+
   const [cardName, setCardName] = useState("");
   const [cardNumber, setCardNumber] = useState("");
   const [cardExp, setCardExp] = useState("");
@@ -35,7 +35,7 @@ export default function Checkout() {
           return;
         }
 
-        // Opcional: si freemium, lo mandamos a planes (no tiene sentido pagar)
+    
         if (data.codigo === "freemium") {
           navigate("/planes", { replace: true });
           return;
@@ -54,7 +54,7 @@ export default function Checkout() {
   }, [codigo, navigate]);
 
   const isFormValid = useMemo(() => {
-    // Validación mínima (simulada)
+ 
     return (
       cardName.trim().length >= 3 &&
       cardNumber.replace(/\s/g, "").length >= 12 &&
@@ -75,13 +75,13 @@ export default function Checkout() {
         return;
       }
 
-      // 1) crear suscripción pendiente
+      //  crear suscripción pendiente
       const subscriptionId = await startDemoCheckout(plan.codigo);
 
-      // 2) confirmar (simulado)
+      //  confirmar 
       await confirmDemoCheckout(subscriptionId, plan.codigo);
 
-      // 3) success
+      //  con exito
       navigate("/checkout/exito", {
         replace: true,
         state: {

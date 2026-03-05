@@ -50,9 +50,7 @@ export default function AdminUsersList() {
       <div className="flex items-start justify-between gap-4">
         <div>
           <h3 className="text-xl font-semibold">Usuarios</h3>
-          <p className="text-sm text-gray-500">
-            Gestión de usuarios registrados.
-          </p>
+          <p className="text-sm text-gray-500">Gestión de usuarios registrados.</p>
         </div>
       </div>
 
@@ -70,66 +68,76 @@ export default function AdminUsersList() {
       </div>
 
       {loading ? (
-        <div ><LoadingScreen/></div>
-      ) : filtered.length === 0 ? (
-        <div className="bg-white rounded-lg p-6 shadow-sm">
-          No se encontraron usuarios.
+        <div>
+          <LoadingScreen />
         </div>
+      ) : filtered.length === 0 ? (
+        <div className="bg-white rounded-lg p-6 shadow-sm">No se encontraron usuarios.</div>
       ) : (
-        <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-          <table className="w-full text-sm">
-            <thead className="bg-gray-50 text-gray-600">
-              <tr>
-                <th className="text-left p-3">Usuario</th>
-                <th className="text-left p-3">Email</th>
-                <th className="text-left p-3">Plan</th>
-                <th className="text-left p-3">Mascotas</th>
-                <th className="text-left p-3">Registro</th>
-                <th className="text-right p-3">Acciones</th>
-              </tr>
-            </thead>
+        <div className="bg-white rounded-lg shadow-sm border border-black/5">
+        
+          <div className="overflow-x-auto">
+            <table className="min-w-[820px] w-full text-sm">
+              <thead className="bg-gray-50 text-gray-600">
+                <tr>
+                  <th className="text-left p-3">Usuario</th>
+                  <th className="text-left p-3">Email</th>
+                  <th className="text-left p-3">Plan</th>
+                  <th className="text-left p-3">Mascotas</th>
+                  <th className="text-left p-3">Registro</th>
 
-            <tbody>
-              {filtered.map((u) => (
-                <tr key={u.id} className="border-t">
-                  <td className="p-3">
-                    <p className="font-medium text-gray-800">
-                      {u.nombre} {u.apellido}
-                    </p>
-                    {u.documento && (
-                      <p className="text-xs text-gray-500">Doc: {u.documento}</p>
-                    )}
-                  </td>
-
-                  <td className="p-3 text-gray-700">{u.email}</td>
-
-                  <td className="p-3">
-                    <span className="px-2 py-1 rounded text-xs border bg-white">
-                      {u.membresia_codigo || "freemium"}
-                    </span>
-                  </td>
-
-                  <td className="p-3 text-gray-700">{u.petsCount}</td>
-
-                  <td className="p-3 text-gray-600">
-                    {u.created_at
-                      ? new Date(u.created_at).toLocaleDateString()
-                      : "-"}
-                  </td>
-
-                  <td className="p-3 text-right">
-                    <button
-                      type="button"
-                      onClick={() => navigate(`/admin/usuarios/${u.id}`)}
-                      className="text-[#22687B] hover:underline"
-                    >
-                      Ver / Editar
-                    </button>
-                  </td>
+                 
+                  <th className="text-right p-3 sticky right-0 bg-gray-50">
+                    Acciones
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+
+              <tbody>
+                {filtered.map((u) => (
+                  <tr key={u.id} className="border-t">
+                    <td className="p-3">
+                      <p className="font-medium text-gray-800">
+                        {u.nombre} {u.apellido}
+                      </p>
+                      {u.documento && (
+                        <p className="text-xs text-gray-500">Doc: {u.documento}</p>
+                      )}
+                    </td>
+
+                    <td className="p-3 text-gray-700 whitespace-nowrap">
+                      {u.email}
+                    </td>
+
+                    <td className="p-3">
+                      <span className="px-2 py-1 rounded text-xs border bg-white whitespace-nowrap">
+                        {u.membresia_codigo || "freemium"}
+                      </span>
+                    </td>
+
+                    <td className="p-3 text-gray-700">{u.petsCount}</td>
+
+                    <td className="p-3 text-gray-600 whitespace-nowrap">
+                      {u.created_at ? new Date(u.created_at).toLocaleDateString() : "-"}
+                    </td>
+
+                
+                    <td className="p-3 text-right sticky right-0 bg-white">
+                      <button
+                        type="button"
+                        onClick={() => navigate(`/admin/usuarios/${u.id}`)}
+                        className="text-[#22687B] hover:underline whitespace-nowrap"
+                      >
+                        Ver / Editar
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+         
         </div>
       )}
     </div>

@@ -303,22 +303,7 @@ export default function ModalDocumentacion({
         <form className="modal-form" onSubmit={(e) => e.preventDefault()}>
           {renderFields()}
 
-      
-          {!lockedForCreate && (
-            <div className="form-row mt-3">
-              <label>Alerta:</label>
-              <select
-                name="alerta"
-                value={formData.alerta || "Activo"}
-                onChange={handleChange}
-                className="input-field"
-              >
-                <option>Activo</option>
-                <option>Inactivo</option>
-              </select>
-            </div>
-          )}
-
+  
           <div className="form-actions flex flex-col items-center mt-4">
             <div className="flex justify-center gap-3">
             

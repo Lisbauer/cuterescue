@@ -1,9 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  adminGetVets,
-  adminToggleVetActive,
-} from "../services/vetAdmin.service";
+import { adminGetVets, adminToggleVetActive } from "../services/vetAdmin.service";
 import LoadingScreen from "../../components/ui/LoadingScreen";
 
 export default function AdminVetsList() {
@@ -12,7 +9,6 @@ export default function AdminVetsList() {
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState(null);
 
-  // buscador
   const [query, setQuery] = useState("");
 
   async function load() {
@@ -48,11 +44,7 @@ export default function AdminVetsList() {
     if (!q) return vets;
 
     return vets.filter((v) => {
-      const haystack = [
-        v.nombre,
-        v.direccion,
-        v.telefono,
-      ]
+      const haystack = [v.nombre, v.direccion, v.telefono]
         .filter(Boolean)
         .join(" ")
         .toLowerCase();
@@ -73,13 +65,10 @@ export default function AdminVetsList() {
 
   return (
     <div className="space-y-6">
-
       <div className="flex items-start justify-between gap-4">
         <div>
           <h1 className="text-xl font-semibold">Veterinarias 24 hs</h1>
-          <p className="text-sm text-gray-500">
-            Gestión de Veterinarias 24 hs
-          </p>
+          <p className="text-sm text-gray-500">Gestión de Veterinarias 24 hs</p>
 
           <div className="mt-2 flex flex-wrap gap-2 text-xs">
             <span className="px-2 py-1 rounded border bg-white text-gray-600">
@@ -103,7 +92,6 @@ export default function AdminVetsList() {
         </button>
       </div>
 
-
       <div className="bg-white rounded-lg p-4 shadow-sm">
         <label className="text-sm text-gray-600">Buscar veterinaria</label>
         <input
@@ -117,100 +105,106 @@ export default function AdminVetsList() {
         </p>
       </div>
 
-
       {loading ? (
-        <div><LoadingScreen/></div>
+        <div>
+          <LoadingScreen />
+        </div>
       ) : filtered.length === 0 ? (
         <div className="bg-white rounded-lg p-6 shadow-sm">
           No hay veterinarias que coincidan con tu búsqueda.
         </div>
       ) : (
-        <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-          <table className="w-full text-sm">
-            <thead className="bg-gray-50 text-gray-600">
-              <tr>
-                <th className="text-left p-3">Nombre</th>
-                <th className="text-left p-3">Dirección</th>
-                <th className="text-left p-3">Estado</th>
-                <th className="text-right p-3">Acciones</th>
-              </tr>
-            </thead>
+        <div className="bg-white rounded-lg shadow-sm border border-black/5">
+     
+          <div className="overflow-x-auto">
+            <table className="min-w-[760px] w-full text-sm">
+              <thead className="bg-gray-50 text-gray-600">
+                <tr>
+                  <th className="text-left p-3">Nombre</th>
+                  <th className="text-left p-3">Dirección</th>
+                  <th className="text-left p-3">Estado</th>
 
-            <tbody>
-              {filtered.map((v) => {
-                const rowClasses = v.activa
-                  ? "border-t"
-                  : "border-t bg-red-50/40";
+               
+                  <th className="text-right p-3 sticky right-0 bg-gray-50">
+                    Acciones
+                  </th>
+                </tr>
+              </thead>
 
-                return (
-                  <tr key={v.id} className={rowClasses}>
-                    <td className="p-3">
-                      <div className="flex items-center gap-2">
+              <tbody>
+                {filtered.map((v) => {
+                  const rowClasses = v.activa ? "border-t" : "border-t bg-red-50/40";
+
+                  return (
+                    <tr key={v.id} className={rowClasses}>
+                      <td className="p-3">
+                        <div className="flex items-center gap-2">
+                          <span
+                            className={`inline-block w-2 h-2 rounded-full ${
+                              v.activa ? "bg-green-500" : "bg-red-500"
+                            }`}
+                          />
+                          <span
+                            className={`font-medium ${
+                              v.activa ? "text-gray-800" : "text-red-800"
+                            }`}
+                          >
+                            {v.nombre}
+                          </span>
+                        </div>
+
+                        {v.telefono && (
+                          <p className="text-xs text-gray-500 mt-1 whitespace-nowrap">
+                            Tel: {v.telefono}
+                          </p>
+                        )}
+                      </td>
+
+                      <td className="p-3 text-gray-600">
+                        <span className="whitespace-nowrap">{v.direccion}</span>
+                      </td>
+
+                      <td className="p-3">
                         <span
-                          className={`inline-block w-2 h-2 rounded-full ${
-                            v.activa ? "bg-green-500" : "bg-red-500"
-                          }`}
-                        />
-                        <span
-                          className={`font-medium ${
-                            v.activa ? "text-gray-800" : "text-red-800"
+                          className={`px-2 py-1 rounded text-xs border whitespace-nowrap ${
+                            v.activa
+                              ? "bg-green-50 border-green-200 text-green-700"
+                              : "bg-red-50 border-red-200 text-red-700"
                           }`}
                         >
-                          {v.nombre}
+                          {v.activa ? "Activa" : "Inactiva"}
                         </span>
-                      </div>
-                      {v.telefono && (
-                        <p className="text-xs text-gray-500 mt-1">
-                          Tel: {v.telefono}
-                        </p>
-                      )}
-                    </td>
+                      </td>
 
-                    <td className="p-3 text-gray-600">{v.direccion}</td>
+                      {/* Sticky cell */}
+                      <td className="p-3 text-right sticky right-0 bg-white">
+                        <div className="flex items-center justify-end gap-3 whitespace-nowrap">
+                          <button
+                            type="button"
+                            onClick={() => navigate(`/admin/veterinarias/${v.id}/editar`)}
+                            className="text-[#22687B] hover:underline"
+                          >
+                            Editar
+                          </button>
 
-                    <td className="p-3">
-                      <span
-                        className={`px-2 py-1 rounded text-xs border ${
-                          v.activa
-                            ? "bg-green-50 border-green-200 text-green-700"
-                            : "bg-red-50 border-red-200 text-red-700"
-                        }`}
-                      >
-                        {v.activa ? "Activa" : "Inactiva"}
-                      </span>
-                    </td>
-
-                    <td className="p-3 text-right space-x-3">
-                      <button
-                        type="button"
-                        onClick={() =>
-                          navigate(`/admin/veterinarias/${v.id}/editar`)
-                        }
-                        className="text-[#22687B] hover:underline"
-                      >
-                        Editar
-                      </button>
-
-                      <button
-                        type="button"
-                        disabled={busyId === v.id}
-                        onClick={() => handleToggle(v)}
-                        className={`hover:underline disabled:opacity-50 ${
-                          v.activa ? "text-red-700" : "text-green-700"
-                        }`}
-                      >
-                        {busyId === v.id
-                          ? "..."
-                          : v.activa
-                          ? "Desactivar"
-                          : "Activar"}
-                      </button>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                          <button
+                            type="button"
+                            disabled={busyId === v.id}
+                            onClick={() => handleToggle(v)}
+                            className={`hover:underline disabled:opacity-50 ${
+                              v.activa ? "text-red-700" : "text-green-700"
+                            }`}
+                          >
+                            {busyId === v.id ? "..." : v.activa ? "Desactivar" : "Activar"}
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
     </div>

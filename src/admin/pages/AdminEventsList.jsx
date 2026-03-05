@@ -30,7 +30,11 @@ export default function AdminEventsList() {
     if (!q) return events;
 
     return events.filter((ev) => {
-      const haystack = [ev.id, ev.title, ev.summary].filter(Boolean).join(" ").toLowerCase();
+      const haystack = [ev.id, ev.title, ev.summary]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+
       return haystack.includes(q);
     });
   }, [events, query]);
@@ -59,7 +63,9 @@ export default function AdminEventsList() {
       <div className="flex items-start justify-between gap-4">
         <div>
           <h1 className="text-xl font-semibold">Eventos</h1>
-          <p className="text-sm text-gray-500">Administrá el contenido de la sección Eventos.</p>
+          <p className="text-sm text-gray-500">
+            Administrá el contenido de la sección Eventos.
+          </p>
 
           <div className="mt-2 flex flex-wrap gap-2 text-xs">
             <span className="px-2 py-1 rounded border bg-white text-gray-600">
@@ -99,69 +105,106 @@ export default function AdminEventsList() {
       {loading ? (
         <div className="bg-white rounded-lg p-6 shadow-sm">Cargando…</div>
       ) : filtered.length === 0 ? (
-        <div className="bg-white rounded-lg p-6 shadow-sm">No hay eventos que coincidan.</div>
+        <div className="bg-white rounded-lg p-6 shadow-sm">
+          No hay eventos que coincidan.
+        </div>
       ) : (
-        <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-          <table className="w-full text-sm">
-            <thead className="bg-gray-50 text-gray-600">
-              <tr>
-                <th className="text-left p-3">Título</th>
-                <th className="text-left p-3">ID</th>
-                <th className="text-left p-3">Estado</th>
-                <th className="text-right p-3">Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((ev) => (
-                <tr key={ev.id} className={ev.activa ? "border-t" : "border-t bg-red-50/40"}>
-                  <td className="p-3">
-                    <div className="flex items-center gap-2">
-                      <span className={`inline-block w-2 h-2 rounded-full ${ev.activa ? "bg-green-500" : "bg-red-500"}`} />
-                      <span className={`font-medium ${ev.activa ? "text-gray-800" : "text-red-800"}`}>
-                        {ev.title}
-                      </span>
-                    </div>
-                    {ev.summary && <p className="text-xs text-gray-500 mt-1 line-clamp-2">{ev.summary}</p>}
-                  </td>
+        <div className="bg-white rounded-lg shadow-sm border border-black/5">
+     
+          <div className="overflow-x-auto">
+            <table className="min-w-[760px] w-full text-sm">
+              <thead className="bg-gray-50 text-gray-600">
+                <tr>
+                  <th className="text-left p-3">Título</th>
+                  <th className="text-left p-3">ID</th>
+                  <th className="text-left p-3">Estado</th>
 
-                  <td className="p-3 text-gray-600">{ev.id}</td>
-
-                  <td className="p-3">
-                    <span
-                      className={`px-2 py-1 rounded text-xs border ${
-                        ev.activa
-                          ? "bg-green-50 border-green-200 text-green-700"
-                          : "bg-red-50 border-red-200 text-red-700"
-                      }`}
-                    >
-                      {ev.activa ? "Activo" : "Inactivo"}
-                    </span>
-                  </td>
-
-                  <td className="p-3 text-right space-x-3">
-                    <button
-                      type="button"
-                      onClick={() => navigate(`/admin/eventos/${ev.id}/editar`)}
-                      className="text-[#22687B] hover:underline"
-                    >
-                      Editar
-                    </button>
-
-                    <button
-                      type="button"
-                      disabled={busyId === ev.id}
-                      onClick={() => handleToggle(ev)}
-                      className={`hover:underline disabled:opacity-50 ${
-                        ev.activa ? "text-red-700" : "text-green-700"
-                      }`}
-                    >
-                      {busyId === ev.id ? "..." : ev.activa ? "Desactivar" : "Activar"}
-                    </button>
-                  </td>
+               
+                  <th className="text-right p-3 sticky right-0 bg-gray-50">
+                    Acciones
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+
+              <tbody>
+                {filtered.map((ev) => (
+                  <tr
+                    key={ev.id}
+                    className={ev.activa ? "border-t" : "border-t bg-red-50/40"}
+                  >
+                    <td className="p-3">
+                      <div className="flex items-center gap-2">
+                        <span
+                          className={`inline-block w-2 h-2 rounded-full ${
+                            ev.activa ? "bg-green-500" : "bg-red-500"
+                          }`}
+                        />
+                        <span
+                          className={`font-medium ${
+                            ev.activa ? "text-gray-800" : "text-red-800"
+                          }`}
+                        >
+                          {ev.title}
+                        </span>
+                      </div>
+
+                      {ev.summary && (
+                        <p className="text-xs text-gray-500 mt-1 line-clamp-2">
+                          {ev.summary}
+                        </p>
+                      )}
+                    </td>
+
+                    <td className="p-3 text-gray-600 whitespace-nowrap">
+                      {ev.id}
+                    </td>
+
+                    <td className="p-3">
+                      <span
+                        className={`px-2 py-1 rounded text-xs border whitespace-nowrap ${
+                          ev.activa
+                            ? "bg-green-50 border-green-200 text-green-700"
+                            : "bg-red-50 border-red-200 text-red-700"
+                        }`}
+                      >
+                        {ev.activa ? "Activo" : "Inactivo"}
+                      </span>
+                    </td>
+
+                 
+                    <td className="p-3 text-right sticky right-0 bg-white">
+                      <div className="flex items-center justify-end gap-3 whitespace-nowrap">
+                        <button
+                          type="button"
+                          onClick={() => navigate(`/admin/eventos/${ev.id}/editar`)}
+                          className="text-[#22687B] hover:underline"
+                        >
+                          Editar
+                        </button>
+
+                        <button
+                          type="button"
+                          disabled={busyId === ev.id}
+                          onClick={() => handleToggle(ev)}
+                          className={`hover:underline disabled:opacity-50 ${
+                            ev.activa ? "text-red-700" : "text-green-700"
+                          }`}
+                        >
+                          {busyId === ev.id
+                            ? "..."
+                            : ev.activa
+                            ? "Desactivar"
+                            : "Activar"}
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+        
         </div>
       )}
     </div>

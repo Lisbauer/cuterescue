@@ -7,7 +7,7 @@ export default function PrivateRoute({ children }) {
 
   // mientras el contexto resuelve el usuario
   if (loading) {
-    return <p className="text-center mt-10"><LoadingScreen/></p>;
+    return <div className="text-center mt-10"><LoadingScreen/></div>;
   }
 
   // si no hay usuario → login

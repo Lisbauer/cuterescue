@@ -168,13 +168,13 @@ const handleSendScreenshot = async () => {
           Última ubicación: <span className="font-medium">{safeAddress}</span>
         </p>
 
-        <span
+       {/*  <span
           className={`px-3 py-1 rounded-lg text-white font-light ${
             chipActivo ? "bg-[#007bff]" : "bg-red-400"
           }`}
         >
           Chip: {chipActivo ? "Activo" : "Inactivo"}
-        </span>
+        </span> */}
 
       
         <BtnScreenshot onClick={handleSendScreenshot} />
