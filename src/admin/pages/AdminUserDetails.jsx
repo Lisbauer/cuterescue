@@ -5,6 +5,7 @@ import {
   adminGetUserById,
   adminUpdateUser,
 } from "../services/usersAdmin";
+import LoadingScreen from "../../components/ui/LoadingScreen";
 
 export default function AdminUserDetails() {
   const navigate = useNavigate();
@@ -78,7 +79,7 @@ export default function AdminUserDetails() {
     }
   }
 
-  if (loading) return <div className="bg-white rounded-lg p-6 shadow-sm">Cargando…</div>;
+    if (loading) return <span><LoadingScreen/></span>;
   if (!user) return <div className="bg-white rounded-lg p-6 shadow-sm">Usuario no encontrado.</div>;
 
   return (

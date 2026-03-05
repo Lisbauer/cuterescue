@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import ModalEdicionUsuario from "./modals/ModalEditUser";
 import { supabase } from "../services/supabase";
 import { capitalizeAll } from "../utils/text";
+import LoadingScreen from "./ui/LoadingScreen";
 
 function getPlanLabel(code) {
   const c = (code || "freemium").toLowerCase();
@@ -13,7 +14,7 @@ function getPlanLabel(code) {
 }
 
 export default function DetailsInform({ details, ubicacion }) {
-  if (!details) return <div>Loading...</div>;
+ // if (!details) return <div><LoadingScreen/></div>;
 
   const {
     email,
@@ -28,7 +29,7 @@ export default function DetailsInform({ details, ubicacion }) {
     codigoPostal: codigoPostalUser,
     provincia: provinciaUser,
     genero,
-    membresia_codigo, // 👈 plan actual desde DB
+    membresia_codigo, 
   } = details;
 
   const {
@@ -59,7 +60,7 @@ export default function DetailsInform({ details, ubicacion }) {
     if (!error) setUserData(data);
   };
 
-  // ✅ Plan dinámico desde userData (así se actualiza tras checkout)
+ 
   const planLabel = getPlanLabel(userData?.membresia_codigo ?? membresia_codigo);
 
   return (

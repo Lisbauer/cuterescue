@@ -5,10 +5,9 @@ import { capitalizeAll } from "../../utils/text";
 import { useAuth } from "../../context/AuthContext";
 
 /**
- * AddPets
- * - Abre modal para registrar nueva mascota
- * - Valida límite por plan (freemium/premium/plus)
- * - Si alcanza el límite: bloquea UI y redirige a /planes
+abre modal para registrar nueva mascota
+valida límite por plan (freemium/premium/plus)
+si alcanza el límite bloquea UI y redirige a /planes
  */
 export default function AddPets({ onPetAdded }) {
   const navigate = useNavigate();
@@ -32,7 +31,7 @@ export default function AddPets({ onPetAdded }) {
   const [preview, setPreview] = useState(null);
   const [message, setMessage] = useState("");
 
-  // Plan / límite
+  // plan y limite
   const [planCode, setPlanCode] = useState("freemium");
   const [maxPets, setMaxPets] = useState(1);
   const [currentPetsCount, setCurrentPetsCount] = useState(0);
@@ -42,14 +41,14 @@ export default function AddPets({ onPetAdded }) {
     return (currentPetsCount ?? 0) < (maxPets ?? 1);
   }, [currentPetsCount, maxPets]);
 
-  // 1) Chequear límite (plan + count mascotas)
+  // primero chequeamos limite
   useEffect(() => {
     async function checkPetLimit() {
       try {
         setCheckingLimit(true);
         if (!user?.id) return;
 
-        // a) plan del usuario
+        //cual es el plan del usuario
         const { data: userRow, error: userErr } = await supabase
           .from("usuarios")
           .select("membresia_codigo")
@@ -61,7 +60,7 @@ export default function AddPets({ onPetAdded }) {
         const code = (userRow?.membresia_codigo || "freemium").toLowerCase();
         setPlanCode(code);
 
-        // b) límite del plan
+        // cual es el limite del plan
         const { data: membershipRow, error: memErr } = await supabase
           .from("membresias")
           .select("max_mascotas")
@@ -73,7 +72,7 @@ export default function AddPets({ onPetAdded }) {
         const max = Number(membershipRow?.max_mascotas);
         setMaxPets(Number.isFinite(max) ? max : 1);
 
-        // c) cuántas mascotas tiene el usuario
+        // cuantas mascotas tiene el usuario desde la tabla mascotas
         const { count, error: countErr } = await supabase
           .from("mascotas")
           .select("*", { count: "exact", head: true })
@@ -95,7 +94,7 @@ export default function AddPets({ onPetAdded }) {
     checkPetLimit();
   }, [user?.id]);
 
-  // 2) Obtener ubicación del usuario cuando se abre el modal
+  // obtiene ubic del usuario cuando se abre el modal
   useEffect(() => {
     const fetchUbicacion = async () => {
       if (!user) return;
@@ -107,7 +106,7 @@ export default function AddPets({ onPetAdded }) {
         .single();
 
       if (error) {
-        console.error("Error al obtener ubicación:", error.message);
+        console.error("error al obtener ubicación:", error.message);
         return;
       }
 
@@ -117,7 +116,7 @@ export default function AddPets({ onPetAdded }) {
     if (showModal) fetchUbicacion();
   }, [showModal, user]);
 
-  // 3) Manejo de inputs
+  //  Manejo de inputs
   const handleChange = (e) => {
     const { name, value, files } = e.target;
 
@@ -137,15 +136,15 @@ export default function AddPets({ onPetAdded }) {
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  // 4) Click en la card “Agregar mascota”
+  //  Click en la card “Agregar mascota”
   const handleOpen = () => {
     setMessage("");
 
-    // mientras chequea, no abrimos (evita bugs)
+
     if (checkingLimit) return;
 
     if (!canAddPet) {
-      // UX: llevamos a planes
+      // lleva a planes
       navigate("/planes");
       return;
     }
@@ -153,13 +152,13 @@ export default function AddPets({ onPetAdded }) {
     setShowModal(true);
   };
 
-  // 5) Guardar mascota
+  // Guardar mascota
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setMessage("");
 
-    // Chequeo UI extra (por si cambió el estado)
+    // chequeo UI extra (por si cambia el estado)
     if (!canAddPet) {
       setLoading(false);
       navigate("/planes");
@@ -206,7 +205,7 @@ export default function AddPets({ onPetAdded }) {
         fotoUrl = publicUrl.publicUrl;
       }
 
-      // Insert mascota (acá también te protege el trigger PET_LIMIT_REACHED)
+      // Insert mascota 
       const { data: pet, error: insertError } = await supabase
         .from("mascotas")
         .insert([
@@ -257,7 +256,7 @@ export default function AddPets({ onPetAdded }) {
       setCurrentPetsCount((prev) => (prev ?? 0) + 1);
 
       onPetAdded?.(pet);
-      setMessage("✅ Mascota registrada correctamente.");
+      setMessage("Mascota registrada correctamente.");
       setShowModal(false);
 
       setForm({
@@ -284,7 +283,7 @@ export default function AddPets({ onPetAdded }) {
         );
         navigate("/planes");
       } else {
-        alert("❌ Falló al agregar mascota: " + msg);
+        alert("Falló al agregar mascota: " + msg);
       }
     } finally {
       setLoading(false);
@@ -298,7 +297,7 @@ export default function AddPets({ onPetAdded }) {
 
   return (
     <>
-      {/* Card que abre el modal (o redirige a planes si no puede) */}
+      
       <article
         className={`mx-auto w-[256px] flex-shrink-0 rounded-3xl h-[250px] p-5 flex justify-center items-center flex-col shadow-md transition-all duration-300
           ${
@@ -332,7 +331,7 @@ export default function AddPets({ onPetAdded }) {
         )}
       </article>
 
-      {/* Modal */}
+    
       {showModal && (
         <div className="fixed inset-0 bg-black/60 flex justify-center items-center w-full z-[1000]">
           <div className="modalGlobal relative ">
@@ -351,7 +350,7 @@ export default function AddPets({ onPetAdded }) {
               onSubmit={handleSubmit}
               className="grid grid-cols-2 gap-4 max-h-[80vh] overflow-y-auto"
             >
-              {/* Nombre */}
+           
               <div>
                 <label className="block text-sm font-medium text-white mb-1">
                   Nombre
@@ -365,7 +364,6 @@ export default function AddPets({ onPetAdded }) {
                 />
               </div>
 
-              {/* Especie */}
               <div>
                 <label className="block text-sm font-medium text-white mb-1">
                   Especie
@@ -382,7 +380,7 @@ export default function AddPets({ onPetAdded }) {
                 </select>
               </div>
 
-              {/* Raza */}
+            
               <div>
                 <label className="block text-sm font-medium text-white mb-1">
                   Raza
@@ -396,7 +394,7 @@ export default function AddPets({ onPetAdded }) {
                 />
               </div>
 
-              {/* Fecha */}
+            
               <div>
                 <label className="block text-sm font-medium text-white mb-1">
                   Fecha de nacimiento
@@ -411,7 +409,7 @@ export default function AddPets({ onPetAdded }) {
                 />
               </div>
 
-              {/* Peso */}
+           
               <div>
                 <label className="block text-sm font-medium text-white mb-1">
                   Peso (kg)
@@ -427,7 +425,7 @@ export default function AddPets({ onPetAdded }) {
                 />
               </div>
 
-              {/* Color */}
+           
               <div>
                 <label className="block text-sm font-medium text-white mb-1">
                   Color
@@ -441,7 +439,7 @@ export default function AddPets({ onPetAdded }) {
                 />
               </div>
 
-              {/* Sexo */}
+           
               <div>
                 <label className="block text-sm font-medium text-white mb-1">
                   Sexo
@@ -458,7 +456,7 @@ export default function AddPets({ onPetAdded }) {
                 </select>
               </div>
 
-              {/* Estado de salud */}
+            
               <div>
                 <label className="block text-sm font-medium text-white mb-1">
                   Estado de salud
@@ -472,7 +470,6 @@ export default function AddPets({ onPetAdded }) {
                 />
               </div>
 
-              {/* Foto */}
               <div className="col-span-2">
                 <label className="block text-sm font-medium text-white mb-1">
                   Foto
@@ -493,7 +490,7 @@ export default function AddPets({ onPetAdded }) {
                 )}
               </div>
 
-              {/* Ubicación */}
+           
               {ubicacion && (
                 <div className="col-span-2 bg-gray-100 p-3 rounded-lg text-sm text-gray-700 border">
                   <p>

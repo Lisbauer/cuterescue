@@ -8,8 +8,8 @@ export default function Sidebar() {
     { label: "Veterinarias", path: "/admin/veterinarias" },
     { label: "Eventos", path: "/admin/eventos" },
     { label: "Membresías", path: "/admin/membresias" },
-    { label: "Alertas / Reportes", path: "/admin/alertas" },
-    { label: "Configuración", path: "/admin/configuracion" },
+    { label: "Mapeo general", path: "/admin/mapa" },
+    { label: "Cute Rescue", path: "/" },
   ];
 
   return (

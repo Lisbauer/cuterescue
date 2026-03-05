@@ -31,6 +31,7 @@ import AdminMembershipsList from "./admin/pages/AdminMembershipsList";
 import AdminMembershipEdit from "./admin/pages/actions/AdminMembershipEdit";
 import AdminUsersList from "./admin/pages/AdminUsersList";
 import AdminUserDetails from "./admin/pages/AdminUserDetails";
+import AdminTrackingMap from "./admin/pages/AdminTrackingMap";
 
 function App() {
   return (
@@ -147,6 +148,7 @@ function App() {
           <Route path="veterinarias" element={<AdminVets />} />
   <Route path="veterinarias/nueva" element={<AdminVetCreate />} />
   <Route path="veterinarias/:id/editar" element={<AdminVetEdit />} />
+      <Route path="mapa" element={<AdminTrackingMap />} />
 
     <Route path="eventos" element={<AdminEventsList />} />
   <Route path="eventos/nuevo" element={<AdminEventCreate />} />

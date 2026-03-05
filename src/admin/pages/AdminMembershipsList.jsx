@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { adminGetMemberships } from "../services/membershipsAdmin";
+import LoadingScreen from "../../components/ui/LoadingScreen";
 
 export default function AdminMembershipsList() {
   const navigate = useNavigate();
@@ -21,9 +22,7 @@ export default function AdminMembershipsList() {
     load();
   }, []);
 
-  if (loading) {
-    return <div className="bg-white p-6 rounded shadow-sm">Cargando...</div>;
-  }
+  if (loading) return <span><LoadingScreen/></span>;
 
   return (
     <div className="bg-white p-6 rounded shadow-sm space-y-4">

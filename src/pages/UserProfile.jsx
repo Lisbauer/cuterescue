@@ -5,6 +5,7 @@ import PetCards from "../components/ui/PetsCard";
 import DetailsInform from "../components/DetailsInform";
 import usePets from "../hooks/usePets";
 import { supabase } from "../services/supabase";
+import LoadingScreen from "../components/ui/LoadingScreen";
 
 export default function UserProfile() {
   const navigate = useNavigate();

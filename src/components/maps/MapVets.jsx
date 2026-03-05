@@ -1,4 +1,4 @@
-import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, useMap, Polyline } from "react-leaflet";
 import { useEffect } from "react";
 
 // funcion  para mover  mapa dinamicamente
@@ -7,14 +7,14 @@ function ChangeView({ lat, lng, nombre }) {
 
   useEffect(() => {
     if (lat && lng) {
-      map.flyTo([lat, lng], 17, { duration: 1.2 }); // zoom suave
+      map.flyTo([lat, lng], 17, { duration: 1.2 }); 
     }
   }, [lat, lng, map]);
 
   return null;
 }
 
-export default function MapaVet({ lat, lng, nombre }) {
+export default function MapaVet({ lat, lng, nombre, userLocation }) {
   if (!lat || !lng) return null;
 
   return (
@@ -32,6 +32,22 @@ export default function MapaVet({ lat, lng, nombre }) {
         <Marker position={[lat, lng]}>
           <Popup autoOpen>{nombre}</Popup>
         </Marker>
+
+        {userLocation && (
+  <Marker position={[userLocation.lat, userLocation.lng]}>
+    <Popup>Tu ubicación</Popup>
+  </Marker>
+)}
+
+{userLocation && (
+  <Polyline
+    positions={[
+      [userLocation.lat, userLocation.lng],
+      [lat, lng],
+    ]}
+    pathOptions={{ color: "red", weight: 4 }}
+  />
+)}
 
         {/* componente que atualiza posicion y zoom */}
         <ChangeView lat={lat} lng={lng} nombre={nombre} />

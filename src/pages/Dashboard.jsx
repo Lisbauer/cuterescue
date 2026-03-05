@@ -51,9 +51,7 @@ export default function Dashboard() {
     if (newPet) setSelectedPet(newPet);
   };
 
-  if (authLoading || profileLoading) {
-    return <p className="text-center mt-10">Cargando perfil...</p>;
-  }
+
 
   return (
     <div className="w-full px-4 lg:px-0 max-w-7xl mx-auto mt-5">

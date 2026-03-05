@@ -4,6 +4,7 @@ import {
   adminGetVets,
   adminToggleVetActive,
 } from "../services/vetAdmin.service";
+import LoadingScreen from "../../components/ui/LoadingScreen";
 
 export default function AdminVetsList() {
   const navigate = useNavigate();
@@ -118,7 +119,7 @@ export default function AdminVetsList() {
 
 
       {loading ? (
-        <div className="bg-white rounded-lg p-6 shadow-sm">Cargando…</div>
+        <div><LoadingScreen/></div>
       ) : filtered.length === 0 ? (
         <div className="bg-white rounded-lg p-6 shadow-sm">
           No hay veterinarias que coincidan con tu búsqueda.

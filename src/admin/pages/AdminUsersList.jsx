@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { adminGetUsers } from "../services/usersAdmin";
+import LoadingScreen from "../../components/ui/LoadingScreen";
 
 export default function AdminUsersList() {
   const navigate = useNavigate();
@@ -48,7 +49,7 @@ export default function AdminUsersList() {
     <div className="space-y-6">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-xl font-semibold">Usuarios</h1>
+          <h3 className="text-xl font-semibold">Usuarios</h3>
           <p className="text-sm text-gray-500">
             Gestión básica de usuarios registrados.
           </p>
@@ -69,7 +70,7 @@ export default function AdminUsersList() {
       </div>
 
       {loading ? (
-        <div className="bg-white rounded-lg p-6 shadow-sm">Cargando…</div>
+        <div ><LoadingScreen/></div>
       ) : filtered.length === 0 ? (
         <div className="bg-white rounded-lg p-6 shadow-sm">
           No se encontraron usuarios.

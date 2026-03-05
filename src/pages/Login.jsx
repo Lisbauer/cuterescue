@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../services/supabase";
+import tramaBg from "../assets/vetorpatas_trama.png";
+import logo from "../assets/logo-2.png";
 
 export default function LogIn() {
   const navigate = useNavigate();
@@ -20,7 +22,7 @@ export default function LogIn() {
 
     const { email, password } = formData;
 
-    const { data, error: loginError } = await supabase.auth.signInWithPassword({
+    const { error: loginError } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
@@ -38,17 +40,19 @@ export default function LogIn() {
   return (
     <div className="w-full h-screen flex flex-col justify-center items-center relative overflow-hidden">
       <img
-        src="src/assets/vetorpatas_trama.png"
+        src={tramaBg}
         alt=""
         className="absolute w-full h-full object-cover -z-10 opacity-30"
       />
+
       <form
         onSubmit={handleLogin}
         className="bg-gray-500/50 backdrop-blur-md w-[450px] h-auto rounded-2xl flex flex-col justify-center items-center gap-10 px-10 py-12 shadow-xl"
       >
         <div className="m-0">
-          <img src="src/assets/logo-2.png" alt="" className="h-40 w-full m-0" />
+          <img src={logo} alt="Logo" className="h-40 w-full m-0 object-contain" />
         </div>
+
         <p className="text-white text-xl text-center mb-2">
           Ingresa tu correo y contraseña
         </p>
@@ -88,7 +92,7 @@ export default function LogIn() {
 
         <p className="text-sm text-cyan-100 hover:text-white mt-2 text-center">
           <a href="#" className="underline hover:text-gray-200">
-            Olvidaste tu contraseña?
+            ¿Olvidaste tu contraseña?
           </a>
         </p>
       </form>

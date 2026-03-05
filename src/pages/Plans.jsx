@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import AppH1 from "../components/ui/AppH1";
 import { getMemberships } from "../services/memberships";
+import LoadingScreen from "../components/ui/LoadingScreen";
 
 function getPlanStyles(theme, highlighted) {
   if (theme === "dorado") {
@@ -50,7 +51,7 @@ export default function Planes() {
   const content = useMemo(() => {
     if (loading) {
       return (
-        <div className="text-center text-gray-500 mt-10">Cargando planes...</div>
+        <div className="text-center text-gray-500 mt-10"><LoadingScreen/></div>
       );
     }
 

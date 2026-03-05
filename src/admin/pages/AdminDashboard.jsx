@@ -5,6 +5,7 @@ import {
 } from "../services/adminDashboard.service";
 import AdminStats from "../components/AdminStats";
 import AdminQuickActions from "../components/AdminQuickActions";
+import LoadingScreen from "../../components/ui/LoadingScreen";
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState(null);
@@ -33,7 +34,7 @@ export default function AdminDashboard() {
     loadDashboard();
   }, []);
 
-  if (loading) return <p className="p-6">Cargando dashboard admin…</p>;
+  if (loading) return <span><LoadingScreen/></span>;
 
   const totalPlans =
     (membershipStats?.freemium ?? 0) +
