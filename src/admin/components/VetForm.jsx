@@ -40,12 +40,12 @@ export default function VetForm({
     lat: initialValues?.lat ?? "",
     lng: initialValues?.lng ?? "",
     activa: initialValues?.activa ?? true,
-    imagen_url: initialValues?.imagen_url ?? null, // guardamos la existente si hay
+    imagen_url: initialValues?.imagen_url ?? null, 
   }));
 
   const [error, setError] = useState("");
 
-  // Imagen
+  // imagen
   const [imageFile, setImageFile] = useState(null);
   const [preview, setPreview] = useState(initialValues?.imagen_url ?? "");
 
@@ -126,7 +126,7 @@ export default function VetForm({
       console.error("Error guardando veterinaria:", err);
       setError(
         err?.message ||
-          "Ocurrió un error al guardar. Revisá permisos de Storage/RLS."
+          "Ocurrió un error al guardar."
       );
     }
   }
@@ -223,7 +223,7 @@ export default function VetForm({
           />
         </div>
 
-        {/* IMAGEN */}
+ 
         <div className="md:col-span-2">
           <label className="text-sm text-gray-600">Imagen</label>
 
@@ -253,13 +253,10 @@ export default function VetForm({
                 />
               </label>
 
-              <p className="text-xs text-gray-400 mt-2">
-                JPG/PNG/WebP — máximo 2MB.
-              </p>
 
               {values.imagen_url && !imageFile && (
                 <p className="text-xs text-gray-500 mt-2">
-                  Ya hay una imagen cargada. Si seleccionás otra, se reemplaza.
+                  Ya hay una imagen cargada.
                 </p>
               )}
             </div>

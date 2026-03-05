@@ -19,7 +19,7 @@ export async function adminGetVetById(id) {
     .maybeSingle();
 
   if (error) throw error;
-  return data; // puede ser null si no existe
+  return data;
 }
 
 export async function adminCreateVet(payload) {

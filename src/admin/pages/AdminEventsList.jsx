@@ -79,7 +79,7 @@ export default function AdminEventsList() {
           onClick={() => navigate("/admin/eventos/nuevo")}
           className="h-10 px-4 rounded bg-[#22687B] text-white text-sm font-medium hover:bg-[#2f7f96]"
         >
-          ➕ Agregar
+          + Agregar
         </button>
       </div>
 

@@ -18,12 +18,13 @@ export default function Navbar() {
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [alerts, setAlerts] = useState([]);
   const [isAdmin, setIsAdmin] = useState(false);
-const [checkingAdmin, setCheckingAdmin] = useState(false);
+  const [checkingAdmin, setCheckingAdmin] = useState(false);
 
   const { selectedPet, alertOn } = useSavedData();
 
-  //  ref para cerrar al click afuera
+  
   const notifRef = useRef(null);
+  const profileRef = useRef(null);
 
   const menuItems = [
     { name: "Home", path: "/" },
@@ -34,38 +35,25 @@ const [checkingAdmin, setCheckingAdmin] = useState(false);
   ];
 
   const fetchIsAdmin = async (userId) => {
-  try {
-    setCheckingAdmin(true);
+    try {
+      setCheckingAdmin(true);
 
-    const { data, error } = await supabase
-      .from("admin_roles")
-      .select("is_active")
-      .eq("user_id", userId)
-      .maybeSingle();
+      const { data, error } = await supabase
+        .from("admin_roles")
+        .select("is_active")
+        .eq("user_id", userId)
+        .maybeSingle();
 
-    if (error) throw error;
+      if (error) throw error;
 
-    setIsAdmin(!!data?.is_active);
-  } catch (e) {
-    console.error("Error checking admin:", e?.message || e);
-    setIsAdmin(false);
-  } finally {
-    setCheckingAdmin(false);
-  }
-};
-
-  //  cargar alertas cuando hay user
-useEffect(() => {
-  if (!user) {
-    setAlerts([]);
-    setIsAdmin(false);
-    return;
-  }
-
-  fetchAlerts(user.id);
-  fetchIsAdmin(user.id);
-}, [user]);
-
+      setIsAdmin(!!data?.is_active);
+    } catch (e) {
+      console.error("error chequeando admin:", e?.message || e);
+      setIsAdmin(false);
+    } finally {
+      setCheckingAdmin(false);
+    }
+  };
 
   const fetchAlerts = async (userId) => {
     const { data, error } = await supabase
@@ -89,12 +77,24 @@ useEffect(() => {
     setAlerts(filtered);
   };
 
+  // cargar datos cuando hay user
+  useEffect(() => {
+    if (!user) {
+      setAlerts([]);
+      setIsAdmin(false);
+      return;
+    }
+
+    fetchAlerts(user.id);
+    fetchIsAdmin(user.id);
+  }, [user]);
+
   const handleSignOut = async () => {
     await signOut();
     navigate("/login");
   };
 
-  // ✅ helper: marcar todas como vistas
+  // helper: marcar todas como vistas
   const markAllAsSeen = async () => {
     if (alerts.length === 0) return;
 
@@ -103,37 +103,57 @@ useEffect(() => {
     setAlerts([]);
   };
 
-  // ✅ click notifs con lógica sólida
+  // click notifs
   const handleNotificationsClick = async () => {
     setNotificationsOpen((prev) => !prev);
 
-    // Si estaba abierto y lo estás cerrando, marcá como visto (tu comportamiento original)
+    // marca como visto
     if (notificationsOpen && alerts.length > 0) {
       await markAllAsSeen();
     }
   };
 
-  // ✅ cerrar con click afuera + ESC
+  // cerrar dropdowns con click afuera (notifs + perfil)
   useEffect(() => {
     const onMouseDown = (e) => {
-      if (!notifRef.current) return;
-      if (!notifRef.current.contains(e.target)) setNotificationsOpen(false);
-    };
-
-    const onKeyDown = (e) => {
-      if (e.key === "Escape") setNotificationsOpen(false);
+      if (notifRef.current && !notifRef.current.contains(e.target)) {
+        setNotificationsOpen(false);
+      }
+      if (profileRef.current && !profileRef.current.contains(e.target)) {
+        setProfileOpen(false);
+      }
     };
 
     document.addEventListener("mousedown", onMouseDown);
-    document.addEventListener("keydown", onKeyDown);
-
-    return () => {
-      document.removeEventListener("mousedown", onMouseDown);
-      document.removeEventListener("keydown", onKeyDown);
-    };
+    return () => document.removeEventListener("mousedown", onMouseDown);
   }, []);
 
-  //  mini helper para fecha
+  // esc cierra todo
+  useEffect(() => {
+    const onKeyDown = (e) => {
+      if (e.key === "Escape") {
+        setIsOpen(false);
+        setProfileOpen(false);
+        setNotificationsOpen(false);
+      }
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, []);
+
+  // si vuelve a desktop, cierra menu mobile para no tener estados rotos
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 976px)");
+    const handleChange = () => {
+      if (mq.matches) setIsOpen(false);
+    };
+
+    handleChange();
+    mq.addEventListener("change", handleChange);
+    return () => mq.removeEventListener("change", handleChange);
+  }, []);
+
+  //  helper para fecha
   const formatDate = (value) => {
     if (!value) return "";
     try {
@@ -149,7 +169,7 @@ useEffect(() => {
     <nav
       className={`${
         alertOn ? "bg-[#FBC68F]" : "bg-white"
-      } relative z-[100] shadow`}
+      } relative z-[5000] shadow`}
     >
       <div className="max-w-7xl mx-auto flex items-center justify-between p-4 relative">
         {/* logo */}
@@ -158,7 +178,7 @@ useEffect(() => {
           <img className="h-30 w-auto" src={LogoNombre} alt="Logo" />
         </Link>
 
-        {/* menu centrado en desktop */}
+       
         <div className="hidden lg:flex flex-1 justify-center">
           <ul className="flex flex-nowrap bg-[#22687B]/20 rounded-lg overflow-hidden text-lg p-2 gap-2">
             {menuItems.map((item) => (
@@ -180,15 +200,15 @@ useEffect(() => {
           </ul>
         </div>
 
-        {/* DERECHA: usuario logueado o no */}
+     
         <div
-          className={`flex items-center gap-2 z-[101] transition-all duration-300 ${
-            isOpen
-              ? "opacity-0 pointer-events-none"
-              : "opacity-100 pointer-events-auto"
-          }`}
+          className={`flex items-center gap-2 z-[5100] transition-all duration-300 
+            opacity-100 pointer-events-auto
+            ${isOpen ? "max-[975px]:opacity-0 max-[975px]:pointer-events-none" : ""}
+            lg:opacity-100 lg:pointer-events-auto
+          `}
         >
-          {/* BOTONES LOGIN / REGISTRAR SI NO HAY USER (DESKTOP) */}
+        
           {!user && (
             <div className="hidden lg:flex gap-2">
               <Link
@@ -207,15 +227,14 @@ useEffect(() => {
             </div>
           )}
 
-          {/* PetLink mascota selccionada renderizada en navbar*/}
+          {/* PetLink */}
           {user && <PetLink pet={selectedPet} />}
 
-          {/* ===================== NOTIFICACIONES (MEJORADO) ===================== */}
+          {/* NOTIFICACIONES */}
           {user && (
             <div className="relative" ref={notifRef}>
               <button
                 onClick={() => {
-                  // al abrir notifs, cierro perfil (se siente más pro)
                   setProfileOpen(false);
                   handleNotificationsClick();
                 }}
@@ -238,7 +257,7 @@ useEffect(() => {
               {/* DROPDOWN */}
               <div
                 className={[
-                  "absolute right-0 mt-2 w-80 max-w-[90vw] z-[150]",
+                  "absolute right-0 mt-2 w-80 max-w-[90vw] z-[6000]",
                   "origin-top-right transition-all duration-200",
                   notificationsOpen
                     ? "opacity-100 translate-y-0 scale-100 pointer-events-auto"
@@ -278,7 +297,7 @@ useEffect(() => {
                     </div>
                   </div>
 
-                  {/* content */}
+              
                   <div className="max-h-72 overflow-y-auto p-2">
                     {alerts.length === 0 ? (
                       <div className="px-3 py-4">
@@ -287,7 +306,8 @@ useEffect(() => {
                             Sin alertas
                           </p>
                           <p className="text-xs text-gray-500 mt-1">
-                            Cuando algo venza o requiera atención, va a aparecer acá.
+                            Cuando algo venza o requiera atención, va a aparecer
+                            acá.
                           </p>
                         </div>
                       </div>
@@ -329,51 +349,60 @@ useEffect(() => {
             </div>
           )}
 
-          {/* Perfil */}
+          {/* PERFIL */}
           {user && (
-            <div className="relative">
+            <div className="relative" ref={profileRef}>
               <button
                 onClick={() => {
-                  setProfileOpen(!profileOpen);
+                  setProfileOpen((prev) => !prev);
                   setNotificationsOpen(false);
                 }}
-                className="w-25 not-[]:px-4 py-2 bg-white text-[#22687B] font-semibold rounded-md shadow hover:bg-[#f0fafa] transition cursor-pointer"
+                className="w-25 px-4 py-2 bg-white text-[#22687B] font-semibold rounded-md shadow hover:bg-[#f0fafa] transition cursor-pointer"
               >
                 Mi Perfil
               </button>
 
               {profileOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg z-[150] border border-gray-200">
+                <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg z-[6000] border border-gray-200">
                   <ul className="flex flex-col">
                     <li>
                       <button
-                        onClick={() => navigate("/detalles")}
+                        onClick={() => {
+                          setProfileOpen(false);
+                          navigate("/detalles");
+                        }}
                         className="block w-full text-left px-4 py-2 hover:bg-[#e6f2f2] transition text-[#22687B] font-medium"
                       >
                         Mi Cuenta
                       </button>
                     </li>
+
                     <li>
-                      <Link to="/planes">
-                        <button className="block w-full text-left px-4 py-2 hover:bg-[#e6f2f2] transition text-[#22687B] font-medium">
-                          Mi Plan
-                        </button>
-                      </Link>
+                      <button
+                        onClick={() => {
+                          setProfileOpen(false);
+                          navigate("/planes");
+                        }}
+                        className="block w-full text-left px-4 py-2 hover:bg-[#e6f2f2] transition text-[#22687B] font-medium"
+                      >
+                        Mi Plan
+                      </button>
                     </li>
 
                     {!checkingAdmin && isAdmin && (
-  <li>
-    <button
-      onClick={() => {
-        setProfileOpen(false);
-        navigate("/admin");
-      }}
-      className="block w-full text-left px-4 py-2 hover:bg-[#e6f2f2] transition text-[#22687B] font-medium"
-    >
-      Panel de control
-    </button>
-  </li>
-)}
+                      <li>
+                        <button
+                          onClick={() => {
+                            setProfileOpen(false);
+                            navigate("/admin");
+                          }}
+                          className="block w-full text-left px-4 py-2 hover:bg-[#e6f2f2] transition text-[#22687B] font-medium"
+                        >
+                          Panel de control
+                        </button>
+                      </li>
+                    )}
+
                     <li>
                       <button
                         onClick={handleSignOut}
@@ -388,15 +417,13 @@ useEffect(() => {
             </div>
           )}
 
-          {isOpen && (
-            <div className="fixed inset-0 bg-black/20 z-[140] backdrop-blur-sm"></div>
-          )}
-
           {/* Hamburguesa mobile */}
-          <div className="relative z-[150] max-[976px]:block hidden">
+          <div className="relative z-[6500] max-[976px]:block hidden">
             <button
-              onClick={() => setIsOpen(!isOpen)}
-              className="text-[#22687B] focus:outline-none relative z-[150]"
+              onClick={() => setIsOpen((prev) => !prev)}
+              className="text-[#22687B] focus:outline-none relative z-[6500]"
+              aria-label={isOpen ? "Cerrar menú" : "Abrir menú"}
+              aria-expanded={isOpen}
             >
               <svg
                 className="h-6 w-6"
@@ -426,53 +453,76 @@ useEffect(() => {
         </div>
       </div>
 
-      {/* menu responsive en mobile  */}
+      {/* BACKDROP */}
       {isOpen && (
-        <div className="fixed top-0 left-0 w-full h-1/2 bg-[#f5f5dc] z-[130] max-[976px]:block hidden shadow-lg">
-          <ul className="flex flex-col items-center justify-center h-full space-y-4 text-lg">
-            {menuItems.map((item) => (
-              <li key={item.name}>
-                <NavLink
-                  to={item.path}
-                  onClick={() => setIsOpen(false)}
-                  className={({ isActive }) =>
-                    `block px-5 py-2 rounded-full transition-colors duration-300 ${
-                      isActive
-                        ? "bg-white text-[#22687B]"
-                        : "text-[#3D8E88] hover:bg-white hover:text-[#3D8E88]"
-                    }`
-                  }
-                >
-                  {item.name}
-                </NavLink>
-              </li>
-            ))}
+        <button
+          type="button"
+          aria-label="Cerrar menú"
+          onClick={() => setIsOpen(false)}
+          className="fixed inset-0 bg-black/20 z-[5200] backdrop-blur-sm cursor-default max-[976px]:block hidden"
+        />
+      )}
 
-            {/* LOGIN / REGISTRO EN MOBILE */}
-            {!user && (
-              <>
-                <li>
-                  <Link
-                    to="/login"
-                    onClick={() => setIsOpen(false)}
-                    className="block px-5 py-2 bg-[#22687B] text-white rounded-full shadow"
-                  >
-                    Ingresar
-                  </Link>
-                </li>
+      {/* menu responsive mobile */}
+      {isOpen && (
+        <div
+          className="fixed top-0 left-0 w-full h-1/2 bg-[#f5f5dc] z-[5300] max-[976px]:block hidden shadow-lg"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="relative h-full w-full">
+            <button
+              type="button"
+              onClick={() => setIsOpen(false)}
+              className="absolute top-4 right-4 px-4 py-2 rounded-full bg-white text-[#22687B] font-semibold shadow hover:bg-[#f0fafa] transition"
+            >
+              X
+            </button>
 
-                <li>
-                  <Link
-                    to="/registrar"
+            <ul className="flex flex-col items-center justify-center h-full space-y-4 text-lg">
+              {menuItems.map((item) => (
+                <li key={item.name}>
+                  <NavLink
+                    to={item.path}
                     onClick={() => setIsOpen(false)}
-                    className="block px-5 py-2 bg-white text-[#22687B] border border-[#22687B] rounded-full shadow"
+                    className={({ isActive }) =>
+                      `block px-5 py-2 rounded-full transition-colors duration-300 ${
+                        isActive
+                          ? "bg-white text-[#22687B]"
+                          : "text-[#3D8E88] hover:bg-white hover:text-[#3D8E88]"
+                      }`
+                    }
                   >
-                    Registrarme
-                  </Link>
+                    {item.name}
+                  </NavLink>
                 </li>
-              </>
-            )}
-          </ul>
+              ))}
+
+              {/* LOGIN / REGISTRO EN MOBILE */}
+              {!user && (
+                <>
+                  <li>
+                    <Link
+                      to="/login"
+                      onClick={() => setIsOpen(false)}
+                      className="block px-5 py-2 bg-[#22687B] text-white rounded-full shadow"
+                    >
+                      Ingresar
+                    </Link>
+                  </li>
+
+                  <li>
+                    <Link
+                      to="/registrar"
+                      onClick={() => setIsOpen(false)}
+                      className="block px-5 py-2 bg-white text-[#22687B] border border-[#22687B] rounded-full shadow"
+                    >
+                      Registrarme
+                    </Link>
+                  </li>
+                </>
+              )}
+            </ul>
+          </div>
         </div>
       )}
     </nav>

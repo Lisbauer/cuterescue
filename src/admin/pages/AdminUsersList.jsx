@@ -51,7 +51,7 @@ export default function AdminUsersList() {
         <div>
           <h3 className="text-xl font-semibold">Usuarios</h3>
           <p className="text-sm text-gray-500">
-            Gestión básica de usuarios registrados.
+            Gestión de usuarios registrados.
           </p>
         </div>
       </div>

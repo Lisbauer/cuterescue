@@ -4,8 +4,8 @@ export default function ModalDocumentacion({
   isOpen,
   tipo,
   data,
-  petSpecies, // "Canino" | "Felino"
-  existingItems, // { vacuna: [], pipeta: [], desparasitacion: [] }
+  petSpecies, // canino felino
+  existingItems, //  vacuna pipeta desparasitacion
   onClose,
   onAddOrUpdate,
   onDelete,
@@ -16,7 +16,7 @@ export default function ModalDocumentacion({
 
   const isEditing = !!data;
 
-  // opciones base por especie
+
   const baseVaccineOptions = useMemo(() => {
     const sp = String(petSpecies || "").toLowerCase();
     const isCat = sp.includes("fel");
@@ -27,18 +27,18 @@ export default function ModalDocumentacion({
     return ["Vacuna Séxtuple", "Antirrábica", "Bordetella (Tos de las perreras)"];
   }, [petSpecies]);
 
-  // vacunas ya usadas (solo para esta mascota, ya viene filtrado desde Documentation.jsx)
+ 
   const usedVaccines = useMemo(() => {
     const list = existingItems?.vacuna ?? [];
     return new Set(list.map((x) => String(x.tipo_vacuna || "").trim()).filter(Boolean));
   }, [existingItems]);
 
-  // opciones disponibles = base - usadas
+
   const availableVaccineOptions = useMemo(() => {
     return baseVaccineOptions.filter((v) => !usedVaccines.has(v));
   }, [baseVaccineOptions, usedVaccines]);
 
-  // para pipeta/desparasitacion: si ya existe 1, no dejamos crear otra
+
   const alreadyHasOneForType = useMemo(() => {
     if (!existingItems) return false;
 
@@ -48,7 +48,7 @@ export default function ModalDocumentacion({
     return false;
   }, [existingItems, tipo]);
 
-  // si estoy creando y no hay opciones, bloqueo
+
   const lockedForCreate = useMemo(() => {
     if (isEditing) return false;
 
@@ -93,7 +93,7 @@ export default function ModalDocumentacion({
   };
 
   const handleSubmit = () => {
-    // si está bloqueado, ni intentamos
+ 
     if (lockedForCreate) return;
 
     const newErrors = {};
@@ -173,7 +173,7 @@ export default function ModalDocumentacion({
               </div>
             </div>
 
-            {/* si está bloqueado, no muestro el resto para no marear */}
+          
             {!lockedForCreate && (
               <>
                 <div className="form-row">
@@ -303,7 +303,7 @@ export default function ModalDocumentacion({
         <form className="modal-form" onSubmit={(e) => e.preventDefault()}>
           {renderFields()}
 
-          {/* alerta solo si no está bloqueado */}
+      
           {!lockedForCreate && (
             <div className="form-row mt-3">
               <label>Alerta:</label>
@@ -321,7 +321,7 @@ export default function ModalDocumentacion({
 
           <div className="form-actions flex flex-col items-center mt-4">
             <div className="flex justify-center gap-3">
-              {/* si está bloqueado: solo volver */}
+            
               <button type="button" className="btnAzul w-32" onClick={onClose}>
                 Volver
               </button>

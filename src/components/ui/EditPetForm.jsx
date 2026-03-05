@@ -69,7 +69,7 @@ export default function EditPetForm({
 
   return (
     <div className="flex flex-col md:flex-row gap-10 justify-center items-center w-full mb-10 bg-[#f5f5f5]/60 rounded-3xl p-10 shadow-sm">
-      {/* foto */}
+
       <div className="bg-gray-200 w-72 h-80 rounded-2xl overflow-hidden shadow-md">
         <img
           src={foto_url || "/default-pet.png"}
@@ -78,7 +78,7 @@ export default function EditPetForm({
         />
       </div>
 
-      {/* INFO */}
+ 
       <div className="flex flex-col gap-4 max-w-2xl w-full">
         <AppH1 className="estilosH1">{capitalizeAll(nombre)}</AppH1>
 
@@ -102,10 +102,10 @@ export default function EditPetForm({
           />
         </div>
 
-        {/* buttons */}
+      
         <div className="mt-6 flex flex-col gap-3">
           <div className="flex flex-col sm:flex-row gap-4">
-            {/* edit */}
+         
             <button
               type="button"
               onClick={() => setIsModalOpen(true)}
@@ -114,7 +114,7 @@ export default function EditPetForm({
               Editar informes
             </button>
 
-            {/* borrar */}
+       
             <button
               type="button"
               onClick={handleDelete}
@@ -127,7 +127,7 @@ export default function EditPetForm({
               {confirmDelete ? "Confirmar Borrar" : "Borrar Mascota"}
             </button>
 
-            {/* CHIP */}
+       
             <button type="button" className="btnNaranja w-full">
               Informe Chip
             </button>
@@ -145,7 +145,7 @@ export default function EditPetForm({
         </div>
       </div>
 
-      {/* MODAL EDITAR */}
+    
       {isModalOpen && (
         <EditPetModal
           pet={selectedPet}

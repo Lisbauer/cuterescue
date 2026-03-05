@@ -4,8 +4,8 @@ export default function AdminQuickActions() {
   const navigate = useNavigate();
 
   const actions = [
-    { label: "➕ Crear evento", onClick: () => navigate("/admin/eventos/nuevo") },
-    { label: "➕ Agregar veterinaria", onClick: () => navigate("/admin/veterinarias/nueva") },
+    { label: "+ Crear evento", onClick: () => navigate("/admin/eventos/nuevo") },
+    { label: "+ Agregar veterinaria", onClick: () => navigate("/admin/veterinarias/nueva") },
     { label: "Ver usuarios", onClick: () => navigate("/admin/usuarios") },
     { label: "Membresías", onClick: () => navigate("/admin/membresias") },
   ];

@@ -8,7 +8,7 @@ export default function BtnEmergency() {
   async function handleClick() {
     if (!selectedPet || !location) return;
 
-    console.log("🚨 Emergencia activada:", selectedPet.id);
+    console.log("Emergencia activada:", selectedPet.id);
 
     setAlert({ variant: "activate" });
 

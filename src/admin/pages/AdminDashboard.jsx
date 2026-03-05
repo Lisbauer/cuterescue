@@ -59,7 +59,7 @@ export default function AdminDashboard() {
 
       <AdminQuickActions />
 
-      {/* Distribución de planes */}
+
       {membershipStats && (
         <section className="bg-white rounded-lg p-6 shadow-sm">
           <h2 className="text-lg font-semibold mb-4">

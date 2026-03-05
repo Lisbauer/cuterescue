@@ -155,13 +155,10 @@ export default function Checkout() {
             )}
           </div>
 
-          <p className="text-xs text-gray-400 mt-3">
-            * Checkout simulado para demo académica. El sistema registra la
-            suscripción y actualiza el plan del usuario.
-          </p>
+     
         </section>
 
-        {/* Pago (simulado) */}
+     
         <section className="bg-white rounded-lg shadow-sm p-6">
           <h2 className="text-lg font-semibold mb-4">Datos de pago</h2>
 
@@ -222,7 +219,7 @@ export default function Checkout() {
               disabled={paying}
               className="w-full h-11 rounded bg-[#22687B] text-white font-semibold hover:bg-[#2f7f96] disabled:opacity-60"
             >
-              {paying ? "Procesando..." : "Pagar (simulado)"}
+              {paying ? "Procesando..." : "Pagar"}
             </button>
 
             <button

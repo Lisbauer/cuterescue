@@ -41,8 +41,7 @@ export default function AdminTrackingMap() {
         setLoading(true);
         setError("");
 
-        // Si tenés varias filas por mascota, traemos lo más nuevo primero
-        // OJO: vos dijiste "update_at" (sin d). Si en tu DB fuera "updated_at" cambiá abajo.
+     
     const { data, error: err } = await supabase
   .from("localizacion")
   .select(`
@@ -69,7 +68,6 @@ export default function AdminTrackingMap() {
         if (err) throw err;
         if (!alive) return;
 
-        // Dedup: última ubicación por mascota_id
         const seen = new Set();
         const lastByPet = [];
         for (const r of data || []) {
@@ -81,7 +79,7 @@ export default function AdminTrackingMap() {
 
         setRows(lastByPet);
       } catch (e) {
-        console.error("AdminTrackingMap load error:", e);
+        console.error("error con admintrackingmap", e);
         if (!alive) return;
         setError(e?.message || "No se pudo cargar el mapa.");
       } finally {

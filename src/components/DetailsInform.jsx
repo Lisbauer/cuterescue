@@ -93,11 +93,7 @@ export default function DetailsInform({ details, ubicacion }) {
             {direccionMostrar
               ? `${capitalizeAll(direccionMostrar)}, ${codigoPostalMostrar}, ${provinciaMostrar}`
               : "No especificada"}
-            <span
-              className={`${colorSeguridad} py-1 px-5 ml-2 rounded-2xl text-white`}
-            >
-              {estadoSeguridad}
-            </span>
+       
           </p>
 
           <p>

@@ -161,6 +161,7 @@ export default function Veterinaria() {
             />
 
             <div className="p-5">
+              
               <h2 className="text-xl font-semibold text-[#22687b] mb-2">
                 {vet.nombre}
               </h2>

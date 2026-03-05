@@ -23,21 +23,21 @@ const SavedDataContext = createContext();
 
 export function SavedDataProvider({ children }) {
   const [location, setLocation] =
-    useState(null); /** @state guarda la ultim ubic de la mascota */
+    useState(null); //guarda la ultim ubic de la mascota 
   const [selectedPet, setSelectedPetState] =
-    useState(null); /** @state mascota seleccionada  */
+    useState(null); // mascota seleccionada 
 
   const [alert, setAlert] = useState(null);
   const [showAlert, setShowAlert] =
-    useState(false); /** @state controla si el modal de alerta se muestra */
+    useState(false); //  controla si el modal de alerta se muestra 
   const [alertOn, setAlertOn] =
     useState(
       false
-    ); /** @state indica si el modo alerta (la ui en naranjha) esta activa */
+    ); //indica si el modo alerta (la ui en naranjha) esta activa
 
   const simStopRef = useRef(null);
 
-  /**  si la simulacion esta corriendo */
+  //  si la simulacion esta corriendo 
   const [simulationRunning, setSimulationRunning] = useState(false);
 
   const realtimeChannelRef = useRef(null);

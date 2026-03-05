@@ -21,7 +21,7 @@ export default function AdminVetsList() {
       const data = await adminGetVets();
       setVets(data);
     } catch (e) {
-      console.error("Error cargando vets admin:", e);
+      console.error("error cargando vets admin:", e);
     } finally {
       setLoading(false);
     }
@@ -37,7 +37,7 @@ export default function AdminVetsList() {
       await adminToggleVetActive(vet.id, vet.activa);
       await load();
     } catch (e) {
-      console.error("Error cambiando estado:", e);
+      console.error("error en cambiando estado:", e);
     } finally {
       setBusyId(null);
     }
@@ -78,7 +78,7 @@ export default function AdminVetsList() {
         <div>
           <h1 className="text-xl font-semibold">Veterinarias 24 hs</h1>
           <p className="text-sm text-gray-500">
-            Administrá el listado visible para usuarios.
+            Gestión de Veterinarias 24 hs
           </p>
 
           <div className="mt-2 flex flex-wrap gap-2 text-xs">
@@ -99,7 +99,7 @@ export default function AdminVetsList() {
           onClick={() => navigate("/admin/veterinarias/nueva")}
           className="h-10 px-4 rounded bg-[#22687B] text-white text-sm font-medium hover:bg-[#2f7f96]"
         >
-          ➕ Agregar
+          + Agregar
         </button>
       </div>
 

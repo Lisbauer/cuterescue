@@ -29,7 +29,7 @@ const Footer = () => {
         </ul>
       </div>
 
-      {/*    inferior */}
+    
       <div className="footer-bottom">
         © {new Date().getFullYear()} Cute Rescue — Todos los derechos
         reservados.

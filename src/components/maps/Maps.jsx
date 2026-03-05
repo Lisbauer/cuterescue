@@ -14,14 +14,6 @@ actualiza la vista con flyTo() cuando la mascota se mueve
 inhabilita interacciones con el mapa cuando un modal está abierto
 muestra datos clave como nombre, última dirección y estado (activo/inactivo) falta agregar HORA
  
-
- * Props:
- * @param {boolean} modalOpen - indica si un modal está abierto (bloquea interacciones del mapa)
- 
-  contexto (useSavedData):
- * @property {Object} selectedPet <- mascota actualmente seleccionada
- * @property {Object} location  ult ubicación recibida (lat, lng direc..)
- *
  */
 
 const DefaultIcon = L.icon({
@@ -76,7 +68,7 @@ export default function Maps({ modalOpen }) {
       Última Localización: <span className="font-medium">{capitalizeAll(direccion)}</span>
     </p>
   </div>
-  <PetStatus activo={selectedPet.activo} /> 
+ {/*  <PetStatus activo={selectedPet.activo} /> */}
 </div>
 
       <div className=" h-[270px] w-[450px]">

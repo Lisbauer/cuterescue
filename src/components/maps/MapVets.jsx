@@ -49,7 +49,7 @@ export default function MapaVet({ lat, lng, nombre, userLocation }) {
   />
 )}
 
-        {/* componente que atualiza posicion y zoom */}
+    
         <ChangeView lat={lat} lng={lng} nombre={nombre} />
       </MapContainer>
     </div>

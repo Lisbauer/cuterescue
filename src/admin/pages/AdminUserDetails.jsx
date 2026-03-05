@@ -74,7 +74,7 @@ export default function AdminUserDetails() {
 
       navigate("/admin/usuarios");
     } catch (e) {
-      console.error("Error saving user:", e);
+      console.error("error guardando user", e);
       setSaving(false);
     }
   }
@@ -99,7 +99,6 @@ export default function AdminUserDetails() {
         </button>
       </div>
 
-      {/* Info básica */}
       <div className="bg-white rounded-lg p-6 shadow-sm">
         <h2 className="text-lg font-semibold mb-4">Información</h2>
 
@@ -162,7 +161,7 @@ export default function AdminUserDetails() {
               onChange={handleChange}
               className="mt-1 w-full border rounded px-3 py-2 bg-white"
             >
-              {/* fallback */}
+       
               <option value="freemium">freemium</option>
 
               {plans.map((p) => (
@@ -186,7 +185,6 @@ export default function AdminUserDetails() {
         </div>
       </div>
 
-      {/* Mascotas */}
       <div className="bg-white rounded-lg p-6 shadow-sm">
         <h2 className="text-lg font-semibold mb-4">Mascotas del usuario</h2>
 

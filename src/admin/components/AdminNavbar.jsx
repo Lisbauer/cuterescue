@@ -2,12 +2,10 @@ import { useEffect, useState } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { supabase } from "../../services/supabase";
 
-export default function AdminNavbar() {
+export default function AdminNavbar({ onToggleSidebar }) {
   const { user, logout } = useAuth();
-
   const [nombreCompleto, setNombreCompleto] = useState("");
 
-  // traigo nombre + apellido del usuario logueado
   useEffect(() => {
     if (!user) return;
 
@@ -29,17 +27,25 @@ export default function AdminNavbar() {
 
   return (
     <header className="h-14 bg-white border-b flex items-center justify-between px-6">
-      <h1 className="text-lg font-semibold">Panel Administrador</h1>
+      <div className="flex items-center gap-3">
+        <button
+          type="button"
+          onClick={onToggleSidebar}
+          className="lg:hidden inline-flex items-center justify-center w-10 h-10 rounded hover:bg-gray-100"
+          aria-label="Abrir menú"
+        >
+          <span className="text-xl">☰</span>
+        </button>
+
+        <h1 className="text-lg font-semibold">Panel Administrador</h1>
+      </div>
 
       <div className="flex items-center gap-3">
         <span className="text-sm text-gray-600">
           {nombreCompleto || user?.email}
         </span>
 
-        <button
-          onClick={logout}
-          className="text-sm text-red-500 hover:underline"
-        >
+        <button onClick={logout} className="text-sm text-red-500 hover:underline">
           Cerrar sesión
         </button>
       </div>

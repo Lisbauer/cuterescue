@@ -19,7 +19,6 @@ import usePets from "../hooks/usePets";
  - permite editar la info de la mascota
  - permite eliminar, actualizar o agregar nuevas mascotas
  - visualiza alertas globales provenientes del context // saveddatacontext
- *
  */
 
 export default function DataPet() {
@@ -75,7 +74,7 @@ export default function DataPet() {
 
       <div className="bg-gray-300/50 w-full h-px my-10" />
 
-      {/*  INFORME / EDICIÓN */}
+     
       <section className="mb-5 mt-5">
         <EditPetForm
           selectedPet={selectedPet}
@@ -88,7 +87,7 @@ export default function DataPet() {
 
         <MapsViewer selectedPet={selectedPet} location={location} />
 
-        {/* BOTONES ACCIoN */}
+    
         <div className="flex gap-10 justify-center items-center">
           <BtnViaje onClick={() => setisTripModalOpen(true)} />
           <BtnPetMove pet={selectedPet} userLocation={ubicacionUsuario} />

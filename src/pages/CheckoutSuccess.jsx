@@ -104,10 +104,7 @@ export default function CheckoutSuccess() {
           </button>
         </div>
 
-        <p className="text-xs text-gray-400 mt-6">
-          * Confirmación simulada (demo académica). Acceso validado contra
-          Supabase.
-        </p>
+       
       </div>
     </div>
   );

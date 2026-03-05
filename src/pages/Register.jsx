@@ -5,19 +5,15 @@ import { getCoordinatesFromAddress } from "../services/GeoAPI";
 import { provinciasArg } from "../constants/provincias";
 
 /**
-
 - crea el usuario en supabase auth
 - inserta los datos en la tabla usuarios
 - geocodifica la direcc del usuario usando openstreetmap para utilizarla como simulacion
 - guarda la ubicación inicial del usuario en localizacion_usuario para luego utilizarlo en la simulaciond emascota
 - permite subir una foto de perfil al bucket de storage
- 
- * @requires supabase  para autenticación, base de datos y storage
- * @requires useNavigate de react-router-dom.
- * @requires getCoordinatesFromAddress  de geocodificación
- * @requires provinciasArg - lista de provincias argentinas
- 
- */
+supabase  para autenticación, base de datos y storage
+usenavigate de react-router-dom.
+getCoordinatesFromAddress  de geocodificación
+provinciasArg  lista de provincias argentina*/
 
 export default function Register() {
   const navigate = useNavigate();
@@ -55,7 +51,7 @@ export default function Register() {
     const { email, password, ...userData } = formData;
 
     try {
-      //  Crear usuario en AUTH
+      //  Crear usuario en auth
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
         password,
@@ -71,7 +67,7 @@ export default function Register() {
         provincia: userData.provincia,
       });
 
-      const latFinal = lat ?? -34.6037; // fallback CABA centro
+      const latFinal = lat ?? -34.6037; //  CABA centro
       const lngFinal = lng ?? -58.3816;
 
       //  se insertan los datos del usuario en la tabla usuarios
@@ -119,7 +115,7 @@ export default function Register() {
 
       if (locInsertError) {
         console.error(
-          "error insertando en la tabla localizacion_usuario:",
+          "error insertando en tabla",
           locInsertError
         );
         throw locInsertError;
@@ -147,14 +143,14 @@ export default function Register() {
 
         foto_url = publicUrlData.publicUrl;
 
-        //  actualizar foto_url en usuarios
+        //  actualizar foto en usuarios
         const { error: updateError } = await supabase
           .from("usuarios")
           .update({ foto_url })
           .eq("id", userId);
 
         if (updateError) {
-          console.error("error actualizando foto_url:", updateError);
+          console.error("error actualizando foto:", updateError);
           throw updateError;
         }
       }

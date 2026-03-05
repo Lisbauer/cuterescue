@@ -37,10 +37,9 @@ const VALID_PET_FIELDS = [
 
 /**
  * filtra un objeto mascota para que solo incluya los campos válidos
- * definidos en VALID_PET_FIELDS
- *
- * @param  pet objeto de mascota completo recibido desde supabase
- * @returns objeto mascota filtrado y seguro para almacenar
+
+ pet objeto de mascota completo recibido desde supabase
+ objeto mascota filtrado y seguro para almacenar
  */
 function cleanPetForStorage(pet) {
   const cleaned = {};

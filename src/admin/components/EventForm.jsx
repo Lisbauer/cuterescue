@@ -6,7 +6,7 @@ function slugify(text) {
     .toLowerCase()
     .normalize("NFD") // separa acentos
     .replace(/[\u0300-\u036f]/g, "") // remueve los acentos
-    .replace(/[^a-z0-9\s-]/g, "") // solo letras/numeros/espacio/guion etcc
+    .replace(/[^a-z0-9\s-]/g, "") //  letras/numeros/espacio/guion etcc
     .replace(/\s+/g, "_")
     .replace(/-+/g, "_")
     .slice(0, 60);
@@ -148,7 +148,7 @@ export default function EventForm({
         </div>
       </div>
 
-      {/* Ubicaciones */}
+
       <div className="border-t pt-4">
         <div className="flex items-center justify-between">
           <h3 className="text-md font-semibold">Ubicaciones</h3>

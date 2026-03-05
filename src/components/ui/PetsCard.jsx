@@ -32,7 +32,7 @@ export default function PetsCard({
                   }
                 `}
               >
-                {/* Imagen */}
+           
                 <div className="w-full h-60 mb-5 bg-gray-50 rounded-xl overflow-hidden">
                   <img
                     src={
@@ -44,15 +44,15 @@ export default function PetsCard({
                   />
                 </div>
 
-                {/* Información */}
+              
                 <div className="text-white flex flex-col justify-center">
                   <h3 className="text-lg font-semibold">{nombre}</h3>
 
-                  <span className="mt-1">
+              {/*   <span className="mt-1">
                     <strong className="text-orange-300">Status: </strong>
 
                     <PetStatus activo={pet.activo} />
-                  </span>
+                  </span>*/}
 
                   <strong className="text-orange-300 mt-3">Ubicación:</strong>
                   <span className="h-[70px] leading-snug">{direccion}</span>
@@ -61,7 +61,7 @@ export default function PetsCard({
             );
           })}
 
-          {/* BOTÓN PARA AGREGAR NUEVA MASCOTA */}
+        
           <AddPets onPetAdded={onPetAdded} />
         </>
       ) : (

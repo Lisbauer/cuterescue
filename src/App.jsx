@@ -117,22 +117,22 @@ function App() {
       </Route>
 
       <Route
-  path="/checkout/:codigo"
-  element={
-    <PrivateRoute>
-      <Checkout />
-    </PrivateRoute>
-  }
-/>
+        path="/checkout/:codigo"
+        element={
+          <PrivateRoute>
+            <Checkout />
+          </PrivateRoute>
+        }
+      />
 
-<Route
-  path="/checkout/exito"
-  element={
-    <PrivateRoute>
-      <CheckoutSuccess />
-    </PrivateRoute>
-  }
-/>
+      <Route
+        path="/checkout/exito"
+        element={
+          <PrivateRoute>
+            <CheckoutSuccess />
+          </PrivateRoute>
+        }
+      />
 
       <Route
         path="/admin"
@@ -145,18 +145,18 @@ function App() {
         }
       >
         <Route index element={<AdminDashboard />} />
-          <Route path="veterinarias" element={<AdminVets />} />
-  <Route path="veterinarias/nueva" element={<AdminVetCreate />} />
-  <Route path="veterinarias/:id/editar" element={<AdminVetEdit />} />
-      <Route path="mapa" element={<AdminTrackingMap />} />
+        <Route path="veterinarias" element={<AdminVets />} />
+        <Route path="veterinarias/nueva" element={<AdminVetCreate />} />
+        <Route path="veterinarias/:id/editar" element={<AdminVetEdit />} />
+        <Route path="mapa" element={<AdminTrackingMap />} />
 
-    <Route path="eventos" element={<AdminEventsList />} />
-  <Route path="eventos/nuevo" element={<AdminEventCreate />} />
-  <Route path="eventos/:id/editar" element={<AdminEventEdit />} />
-  <Route path="membresias" element={<AdminMembershipsList />} />
-<Route path="membresias/:id/editar" element={<AdminMembershipEdit />} />
-<Route path="usuarios" element={<AdminUsersList />} />
-<Route path="usuarios/:id" element={<AdminUserDetails />} />
+        <Route path="eventos" element={<AdminEventsList />} />
+        <Route path="eventos/nuevo" element={<AdminEventCreate />} />
+        <Route path="eventos/:id/editar" element={<AdminEventEdit />} />
+        <Route path="membresias" element={<AdminMembershipsList />} />
+        <Route path="membresias/:id/editar" element={<AdminMembershipEdit />} />
+        <Route path="usuarios" element={<AdminUsersList />} />
+        <Route path="usuarios/:id" element={<AdminUserDetails />} />
       </Route>
     </Routes>
   );

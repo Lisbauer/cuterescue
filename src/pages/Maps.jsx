@@ -51,10 +51,7 @@ export default function Maps() {
   const [found, setFound] = useState(false);
   const [showMailModal, setShowMailModal] = useState(false);
 
-  /**
-   * actualiza posición del marcador según la ubicación recibida por GPS simulado
-   * @effect
-   * Cuando : `location` cambia, actualiza `petPosition`
+  /** actualiza posición del marcador según la ubicación recibida por GPS simulado, cuando location cambia actualiza petPosition
    */
   useEffect(() => {
     if (location?.lat && location?.lng) {
@@ -69,7 +66,7 @@ export default function Maps() {
   const { nombre, chip_id } = selectedPet;
   const chipActivo = !!chip_id;
 
-  // Defino safeAddress a nivel del componente para usar en JSX y funciones
+
   const safeAddress = [
     location?.direccion,
     location?.barrio,
@@ -80,14 +77,14 @@ export default function Maps() {
     .filter(Boolean)
     .join(", ");
 
-  // BOTÓN "ENCONTRÉ A MI MASCOTA"
+  // btn encontre a mi mascota
   const handleFoundPet = () => {
     stopSimulation();
     setAlertOn(false);
     setFound(true);
   };
 
-  // BOTÓN "ENVIAR CAPTURA"
+  // boton enviar captura
 const handleSendScreenshot = async () => {
   try {
     if (!petPosition || !user) {
@@ -102,15 +99,15 @@ const handleSendScreenshot = async () => {
     const googleMapsLink = `https://www.google.com/maps?q=${lat},${lng}`;
 
     await emailjs.send(
-      "service_b4i1idl",
-      "template_mpbgcui",
+      "service_3lt40pa",
+      "template_wge46dq",
       {
         to_email: userEmail,
         pet_name: selectedPet.nombre,
         address: safeAddress,
         screenshot_url: googleMapsLink,
       },
-      "YLjoPbSLIq24dKE8j"
+      "_1JeKVRWgqdhCbJSZ"
     );
 
     setShowMailModal(true);
@@ -128,7 +125,7 @@ const handleSendScreenshot = async () => {
 
   return (
     <div className="relative max-h-full h-screen w-full flex flex-col">
-      {/*  alerta emergencia  si no la encuentra */}
+      {/*  alerta emergencia   */}
       {!found && <ModalAlert location={location} pet={selectedPet} />}
 
       {/*  modal mail  */}
@@ -179,10 +176,10 @@ const handleSendScreenshot = async () => {
           Chip: {chipActivo ? "Activo" : "Inactivo"}
         </span>
 
-        {/*  Botón para enviar captura */}
+      
         <BtnScreenshot onClick={handleSendScreenshot} />
 
-        {/*  Botón "Encontré a mi mascota" */}
+       
         {!found && <BtnPetFound onClick={handleFoundPet} />}
       </div>
     </div>

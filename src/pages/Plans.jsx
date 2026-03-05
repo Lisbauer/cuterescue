@@ -15,7 +15,7 @@ function getPlanStyles(theme, highlighted) {
     };
   }
 
-  // default: verde
+
   return {
     textColor: "text-[#3D8E88]",
     borderColor: "border-[#3D8E88]",
@@ -39,7 +39,7 @@ export default function Planes() {
         const data = await getMemberships();
         setPlans(data);
       } catch (e) {
-        console.error("Error loading memberships:", e);
+        console.error("Error cargando suscripcion:", e);
         setError("No se pudieron cargar los planes. Intentalo más tarde.");
       } finally {
         setLoading(false);
@@ -104,7 +104,7 @@ export default function Planes() {
                 type="button"
                 onClick={() => {
                   if (isFreemium) {
-                    // Si es freemium, no tiene sentido ir a pagar
+                    // si es freemium, no tiene sentido ir a pagar se redirige al home
                     navigate("/dashboard");
                     return;
                   }

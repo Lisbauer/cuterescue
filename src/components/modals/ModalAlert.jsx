@@ -3,15 +3,10 @@ import { useNavigate } from "react-router-dom";
 import { useSavedData } from "../../context/SavedDataContext";
 
 /**
- * @description
  * componente modal utilizado para mostrar alertas de emergencia
- Este modal aparece cuando:
+Este modal aparece cuando:
 El usuario click en btn de emergencia
-La mascota ya está en un estado de emergencia activo y debe ser guiado al mapa
-
- * @param  show  si el modal debe mostrarse
- * @param  alert  contiene información de la alerta
- */
+La mascota ya está en un estado de emergencia activo y debe ser guiado al mapa*/
 
 export default function ModalAlert({ show, alert, onClose }) {
   const navigate = useNavigate();

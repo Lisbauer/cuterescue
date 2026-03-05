@@ -41,7 +41,7 @@ export default function LoadingScreen({
           <span className="inline-block w-6 text-left">{dots}</span>
         </div>
 
-        {/* detalle visual sutil */}
+  
         <div className="h-1 w-32 bg-[#22687B]/15 rounded-full overflow-hidden">
           <div className="h-full w-1/3 bg-[#22687B] rounded-full animate-loadingBar" />
         </div>

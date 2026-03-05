@@ -4,12 +4,11 @@ import L from "leaflet";
 
 /**
  * muestra un mapa en miniatura con la ubicación actual de la mascota seleccionada
- * 
- *  se usa en el dashboard e informe de mascota
- *   - muestra un mapa centrado en la mascota seleccionada
- *   -indica su ult ubicación
- *   - sigue en tiempo real la posición mediante flyTo()
  *
+ * se usa en el dashboard e informe de mascota
+ *  - muestra un mapa centrado en la mascota seleccionada
+ *  - indica su ult ubicación
+ *  - sigue en tiempo real la posición mediante flyTo()
  */
 
 // Icono default del gps
@@ -20,7 +19,7 @@ const DefaultIcon = L.icon({
 });
 L.Marker.prototype.options.icon = DefaultIcon;
 
-//  para mover el mapa cuando la ubicacion cambia
+// para mover el mapa cuando la ubicacion cambia
 function ChangeView({ center }) {
   const map = useMap();
   React.useEffect(() => {
@@ -47,12 +46,12 @@ export default function MapsViewer({ selectedPet, location }) {
   const position = [location.lat, location.lng];
 
   return (
-    <div className="w-full bg-gray-100 h-96 mb-5 rounded-2xl overflow-hidden shadow ">
-      <MapContainer 
+    <div className="relative z-0 w-full bg-gray-100 h-96 mb-5 rounded-2xl overflow-hidden shadow">
+      <MapContainer
         center={position}
         zoom={15}
         scrollWheelZoom={true}
-        style={{ height: "100%", width: "100%", }}
+        style={{ height: "100%", width: "100%" }}
       >
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'

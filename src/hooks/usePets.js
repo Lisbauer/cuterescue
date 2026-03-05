@@ -93,7 +93,7 @@ export default function usePets() {
       return;
     }
 
-    // si había mascota seleccionada se mantiene seleccionada
+    // si habia mascota seleccionada se mantiene seleccionada
     const selectedPetStillExists = mascotasConUbicacion.find(
       (pet) => pet.id === selectedPet.id
     );

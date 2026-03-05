@@ -9,6 +9,10 @@
   }
 }
 
+.leaflet-container {
+  z-index: 0;
+}
+
 .animate-loadingBar {
   animation: loadingBarMove 1.2s infinite ease-in-out;
 }

@@ -22,7 +22,7 @@ export default function Documentation() {
 
   // plan + limite docs (por mascota)
   const [planCode, setPlanCode] = useState("freemium");
-  const [maxDocs, setMaxDocs] = useState(null); // null = infinito
+  const [maxDocs, setMaxDocs] = useState(null); 
   const [docsCount, setDocsCount] = useState(0);
   const [checkingDocLimit, setCheckingDocLimit] = useState(true);
 
@@ -57,7 +57,7 @@ export default function Documentation() {
     fetchMascotas();
   }, [user]);
 
-  // Genera notifs si está por vencer (queda igual, solo lo ordené un poco)
+  // Genera notifs si está por vencer 
   const generateNotifications = async (items, mascota, userId) => {
     if (!userId || !mascota) return;
 
@@ -115,7 +115,7 @@ export default function Documentation() {
     }
   };
 
-  // Trae documentación de una mascota (para render)
+ 
   const fetchDocumentation = async (mascota) => {
     if (!user || !mascota?.id) return;
 
@@ -164,7 +164,7 @@ export default function Documentation() {
     await fetchDocumentation(mascota);
   };
 
-  // Cuenta docs POR MASCOTA + saca limite por plan
+
   useEffect(() => {
     async function checkDocLimit() {
       try {
@@ -238,7 +238,7 @@ export default function Documentation() {
     checkDocLimit();
   }, [user?.id, selectedMascota?.id]);
 
-  // Chequea duplicados (por mascota)
+  // Chequea duplicados 
   async function isDuplicate({ authUid, petId, tipo, registro }) {
     let q = supabase
       .from("documentacion")
@@ -265,7 +265,7 @@ export default function Documentation() {
       return;
     }
 
-    // si está creando nuevo y ya llegó al límite
+    // si está creando nuevo y ya llego al límite
     if (!data && !checkingDocLimit && !canAddDoc) {
       navigate("/planes");
       return;
@@ -491,7 +491,7 @@ return (
         })
       ) : (
         <p className="text-center text-gray-500 mt-12">
-          Selecciona una mascota para ver su documentación.
+          Seleccioná una mascota para ver su documentación.
         </p>
       )}
 

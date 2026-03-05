@@ -9,13 +9,12 @@ import AppH1 from "./ui/AppH1";
 import { capitalizeAll } from "../utils/text";
 
 /**
- * componente encargado de mostrar la info principal del usuario
+ componente encargado de mostrar la info principal del usuario
 incluye accesos directos:
- - Modo viaje
- - Botón de emergencia
- - Modal de viaje
- - Modal de alerta global de savedDatacontext
- */
+  modo viaje
+  boton de emergencia
+  Modal de viaje
+  Modal de alerta global */
 
 export default function PersonalInform({ details, locations }) {
   const [showModal, setShowModal] = useState(false);

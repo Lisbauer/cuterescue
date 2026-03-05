@@ -58,7 +58,7 @@ export default function ModalEdicionUsuario({
   const handleSubmit = async () => {
     try {
       if (!form.nombre || !form.apellido) {
-        setMessage("⚠️ El nombre y apellido son obligatorios.");
+        setMessage("El nombre y apellido son obligatorios.");
         return;
       }
 

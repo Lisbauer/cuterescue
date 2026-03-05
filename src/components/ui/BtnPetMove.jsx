@@ -26,7 +26,7 @@ export default function BtnPetMove({ pet, userLocation }) {
   return (
     <div className="flex gap-2 justify-center h-[20px] text-center items-center">
       <button className="btnAzul w-full" onClick={handleStartSim}>
-        ¡Ubícame!
+        ¡Ubicame!
       </button>
     </div>
   );

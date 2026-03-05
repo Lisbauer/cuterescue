@@ -83,7 +83,7 @@ export default function AddPets({ onPetAdded }) {
         setCurrentPetsCount(count ?? 0);
       } catch (err) {
         console.error("Error checking pet limit:", err);
-        // fallback seguro
+      
         setPlanCode("freemium");
         setMaxPets(1);
       } finally {
@@ -116,7 +116,7 @@ export default function AddPets({ onPetAdded }) {
     if (showModal) fetchUbicacion();
   }, [showModal, user]);
 
-  //  Manejo de inputs
+ 
   const handleChange = (e) => {
     const { name, value, files } = e.target;
 
@@ -136,7 +136,7 @@ export default function AddPets({ onPetAdded }) {
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  //  Click en la card “Agregar mascota”
+
   const handleOpen = () => {
     setMessage("");
 
@@ -144,7 +144,7 @@ export default function AddPets({ onPetAdded }) {
     if (checkingLimit) return;
 
     if (!canAddPet) {
-      // lleva a planes
+ 
       navigate("/planes");
       return;
     }
@@ -158,7 +158,7 @@ export default function AddPets({ onPetAdded }) {
     setLoading(true);
     setMessage("");
 
-    // chequeo UI extra (por si cambia el estado)
+
     if (!canAddPet) {
       setLoading(false);
       navigate("/planes");
@@ -186,7 +186,7 @@ export default function AddPets({ onPetAdded }) {
     }
 
     try {
-      // Subir foto si corresponde
+ 
       let fotoUrl = null;
 
       if (form.foto_url instanceof File) {
@@ -205,7 +205,6 @@ export default function AddPets({ onPetAdded }) {
         fotoUrl = publicUrl.publicUrl;
       }
 
-      // Insert mascota 
       const { data: pet, error: insertError } = await supabase
         .from("mascotas")
         .insert([
@@ -228,7 +227,7 @@ export default function AddPets({ onPetAdded }) {
 
       if (insertError) throw insertError;
 
-      // Insert ubicación inicial
+
       if (ubicacion) {
         const { direccion, codigoPostal, provincia, lat, lng, source } =
           ubicacion;
@@ -252,7 +251,6 @@ export default function AddPets({ onPetAdded }) {
         if (locError) throw locError;
       }
 
-      // refrescar contador local (para que se deshabilite si llegó al límite)
       setCurrentPetsCount((prev) => (prev ?? 0) + 1);
 
       onPetAdded?.(pet);
@@ -276,7 +274,6 @@ export default function AddPets({ onPetAdded }) {
 
       const msg = String(err?.message || "");
 
-      // Si el trigger bloqueó (seguridad real)
       if (msg.includes("PET_LIMIT_REACHED")) {
         alert(
           "Alcanzaste el límite de mascotas de tu plan. Mejorá tu plan para agregar más."
